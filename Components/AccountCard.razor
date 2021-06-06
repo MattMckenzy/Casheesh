@@ -1,0 +1,120 @@
+﻿@inject IJSRuntime JSRuntime
+@inject CasheeshContext Context
+
+@if (Account != null)
+{
+    <div @ref="@AccountCardReference" class="card bg-dark text-white m-3">
+        <div class="d-flex flex-row justify-content-between">
+            <h4 class="card-title text-stroke p-3 m-0">@Account.Name</h4>
+            <i class="button-bright color-red button-subtle float-right mdi mdi-bank-minus icon-responsive p-3 m-0" @onclick="DeleteAccount"></i>
+        </div>
+
+        <div class="row m-0 w-100 align-items-center">
+            <div class="col-auto mx-3 mb-3 p-0 button-container button-container">
+                <input @ref="TransactionsToggleCheckboxReference" class="invisible-toggle" type="checkbox" id="TransactionsToggle@(Account.Name)" />
+                <label class="button-label m-0" for="TransactionsToggle@(Account.Name)">
+                    <i class="button-bright position-absolute open-button mdi mdi-bank-transfer icon-responsive" @onclick="ToggleTransactions"></i>
+                    <i class="button-bright position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleTransactions"></i>
+                </label>
+            </div>
+            <div class="col-auto mr-3 mb-3 p-0 button-container button-container">
+                <input @ref="RecurrencesToggleCheckboxReference" class="invisible-toggle" type="checkbox" id="RecurrencesToggle@(Account.Name)" />
+                <label class="button-label m-0" for="RecurrencesToggle@(Account.Name)">
+                    <i class="button-bright position-absolute open-button mdi mdi-autorenew icon-responsive" @onclick="ToggleRecurrences"></i>
+                    <i class="button-bright position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleRecurrences"></i>
+                </label>
+            </div>
+            <h3 class="col card-text text-stroke px-3 pb-3 m-0 text-right @(Account.Balance >= 0 ? "color-teal" : Account.Balance <= 0 ? "color-red" : string.Empty)">@Account.Balance.ToString("C", CultureInfo.GetCultureInfo("en-CA"))</h3>
+        </div>
+
+        @if (IsShowingTransactions)
+        {
+            <div class="card-container bg-dark @(IsTransitioning ? string.Empty : "overflow-auto") w-100">
+                <TransactionsTable @bind-Account="Account" />
+            </div>
+        }
+        else if (IsShowingRecurrences)
+        {
+            <div class="card-container bg-dark @(IsTransitioning ? string.Empty : "overflow-auto") overflow-auto w-100">
+                <RecurrencesTable @bind-Account="Account" />
+            </div>
+        }
+
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public Account Account { get; set; }
+
+    private ElementReference AccountCardReference { get; set; }
+    private ElementReference TransactionsToggleCheckboxReference { get; set; }
+    private ElementReference RecurrencesToggleCheckboxReference { get; set; }
+
+    private bool IsShowingTransactions { get; set; } = false;
+    private bool IsShowingRecurrences { get; set; } = false;
+    private bool IsTransitioning { get; set; } = false;
+
+    private async Task DeleteAccount()
+    {
+        bool isDeletingAccount = await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure wou wish to delete the account: {Account.Name}? WARNING: Doing this will permanently delete all associated transactions and recurrences and is irreversible!");
+        if (isDeletingAccount)
+        {
+            Context.Accounts.Remove(Account);
+            await Context.SaveChangesAsync();
+            Account = null;
+        }
+    }
+
+    private async Task ToggleTransactions(MouseEventArgs _)
+    {
+        if (!IsShowingTransactions)
+        {
+            if (IsShowingRecurrences)
+            {
+                await ToggleRecurrences(null);
+                await JSRuntime.InvokeVoidAsync("UncheckElement", RecurrencesToggleCheckboxReference);
+                await InvokeAsync(StateHasChanged);
+                await Task.Delay(100);
+            }
+
+            IsTransitioning = true;
+            IsShowingTransactions = true;
+            await InvokeAsync(StateHasChanged);
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCardReference, 600);
+            IsTransitioning = false;
+        }
+        else
+        {
+            IsTransitioning = true;
+            await InvokeAsync(StateHasChanged);
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCardReference, 106);
+            IsShowingTransactions = false;
+            IsTransitioning = false;    
+        }
+    }
+
+    private async Task ToggleRecurrences(MouseEventArgs _)
+    {
+        if (!IsShowingRecurrences)
+        {
+            if (IsShowingTransactions)
+            {
+                await ToggleTransactions(null);
+                await JSRuntime.InvokeVoidAsync("UncheckElement", TransactionsToggleCheckboxReference);
+                await InvokeAsync(StateHasChanged);
+                await Task.Delay(100);
+            }
+
+            IsShowingRecurrences = true;
+            await InvokeAsync(StateHasChanged);
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCardReference, 600);
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCardReference, 106);
+            IsShowingRecurrences = false;
+        }
+    }
+}

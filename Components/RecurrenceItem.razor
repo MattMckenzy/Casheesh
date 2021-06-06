@@ -1,0 +1,119 @@
+﻿@inject IJSRuntime JSRuntime
+@inject CasheeshContext Context
+
+<div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center justify-content-between">
+    <div class="d-flex flex-row align-items-center">
+        <div class="col-auto p-0 m-0 mr-2 button-container">
+            <input @ref="RecurrencesCreationCheckboxReference" class="invisible-toggle" type="checkbox" id="RecurrenceEditingToggle@($"{Account.Name}{Recurrence.Name}")" />
+            <label class="button-label m-0" for="RecurrenceEditingToggle@($"{Account.Name}{Recurrence.Name}")">
+                <i class="button-bright button-subtle position-absolute open-button mdi mdi-pencil icon-responsive" @onclick="ToggleRecurrenceEditing"></i>
+                <i class="button-bright button-subtle position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleRecurrenceEditing"></i>
+            </label>
+        </div>
+        <div class="text-stroke mr-3">@($"In {Math.Round((Recurrence.LastApplied + Recurrence.TimeSpan - DateTime.Now).TotalDays, MidpointRounding.ToPositiveInfinity)} days: {Recurrence.Name} - {Recurrence.Description}")</div>
+    </div>
+    <div class="text-stroke text-right @(Recurrence.Value >= 0 ? "color-teal" : Recurrence.Value <= 0 ? "color-red" : string.Empty)">@(Recurrence.Value.ToString("C", CultureInfo.GetCultureInfo("en-CA")))</div>
+</div>
+<div @ref="RecurrenceEditingContainerReference" class="hidden-container bd-highlight overflow-hidden">
+    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center my-2">
+        <label class="text-stroke m-0 mr-2">Description:</label>
+        <input @bind="NewRecurrenceDescription" class="name-input m-0 w-100" Name="NewRecurrenceDescription" />
+    </div>
+    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mb-2">
+        <label class="text-stroke m-0 mr-2">Next date:</label>
+        <input @bind="NewRecurrenceNextDate" class="name-input text-right m-0" type="date" step="1" Name="NewRecurrenceNextDate" />
+    </div>
+    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center  mb-2">
+        <label class="text-stroke m-0 mr-2">Days between:</label>
+        <input @bind="NewRecurrenceDays" class="name-input text-right m-0" type="number" step="1" min="1" style="width:52px;" Name="NewRecurrenceDays" />
+    </div>
+    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center justify-content-between">
+        <div>
+            <label class="text-stroke m-0 mr-2">Value:</label>
+            <input @bind="NewRecurrenceValue" class="name-input text-right m-0" type="number" step="0.01" style="width:94px;" Name="NewRecurrenceValue" />
+        </div>
+        <div>
+            <i class="button-bright mdi mdi-content-save icon-responsive m-0" @onclick="EditRecurrence"></i>
+            <i class="button-bright color-red float-right mdi mdi-delete icon-responsive p-0 m-0 mr-1" @onclick="DeleteRecurrence"></i>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public Account Account { get; set; }
+    [Parameter]
+    public EventCallback<Account> AccountChanged { get; set; }
+
+    [Parameter]
+    public Recurrence Recurrence { get; set; }
+    [Parameter]
+    public EventCallback<Recurrence> RecurrenceChanged { get; set; }
+
+    private string NewRecurrenceDescription { get; set; }
+    private double NewRecurrenceValue { get; set; }
+    private int NewRecurrenceDays { get; set; }
+    private DateTime NewRecurrenceNextDate { get; set; }
+
+    private bool IsShowingRecurrenceEditing { get; set; } = false;
+
+    private ElementReference RecurrencesCreationCheckboxReference { get; set; }
+    private ElementReference RecurrenceEditingContainerReference { get; set; }
+
+    protected override Task OnParametersSetAsync()
+    {
+        NewRecurrenceDescription = Recurrence.Description;
+        NewRecurrenceValue = Recurrence.Value;
+        NewRecurrenceNextDate = Recurrence.LastApplied + TimeSpan.FromDays(NewRecurrenceDays);
+        NewRecurrenceDays = Recurrence.TimeSpan.Days;
+
+        return base.OnParametersSetAsync();
+    }
+
+    private async Task ToggleRecurrenceEditing()
+    {
+        if (!IsShowingRecurrenceEditing)
+        {
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", RecurrenceEditingContainerReference, 172);
+            IsShowingRecurrenceEditing = true;
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", RecurrenceEditingContainerReference, 0);
+            IsShowingRecurrenceEditing = false;
+        }
+    }
+
+    private async Task EditRecurrence()
+    {
+        await ToggleRecurrenceEditing();
+        await JSRuntime.InvokeVoidAsync("UncheckElement", RecurrencesCreationCheckboxReference);
+
+        Recurrence.Description = NewRecurrenceDescription;
+        Recurrence.Value = NewRecurrenceValue;
+        Recurrence.LastApplied = NewRecurrenceNextDate - TimeSpan.FromDays(NewRecurrenceDays);
+        Recurrence.TimeSpan = TimeSpan.FromDays(NewRecurrenceDays);
+
+        await Context.SaveChangesAsync();
+
+        await AccountChanged.InvokeAsync(Account);
+    }
+
+    private async Task DeleteRecurrence()
+    {
+        bool isDeletingRecurrence = await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure wou wish to delete the recurrence: \"{Recurrence.Name} - {Recurrence.Description} \"?");
+        if (isDeletingRecurrence)
+        {
+            await ToggleRecurrenceEditing();
+            await JSRuntime.InvokeVoidAsync("UncheckElement", RecurrencesCreationCheckboxReference);
+
+            Account.Recurrences.Remove(Recurrence);
+            await Context.SaveChangesAsync();
+
+            await AccountChanged.InvokeAsync(Account);
+        }
+
+    }
+
+}
