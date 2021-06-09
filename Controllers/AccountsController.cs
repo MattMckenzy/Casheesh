@@ -69,6 +69,7 @@ namespace Casheesh.Controllers
         [HttpPost]
         public async Task<ActionResult<Account>> PostAccount(Account account)
         {
+            account.Order = !_context.Accounts.Any() ? 1 : _context.Accounts.OrderByDescending(account => account.Order).First().Order + 1;
             _context.Accounts.Add(account);
             try
             {

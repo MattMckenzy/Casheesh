@@ -6,7 +6,13 @@
     <DockerfileContext>.</DockerfileContext>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <DockerfileRunArguments>-v "C:\Docker\Data:/data"</DockerfileRunArguments>
+  </PropertyGroup>
+
   <ItemGroup>
+    <PackageReference Include="ChartJs.Blazor.Fork" Version="2.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="5.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.6" />
@@ -24,8 +30,12 @@
 
   <ItemGroup>
     <None Update="casheesh.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\chart\" />
   </ItemGroup>
 
 </Project>

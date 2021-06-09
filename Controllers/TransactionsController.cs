@@ -32,8 +32,8 @@ namespace Casheesh.Controllers
             if (account == null)
                 return BadRequest("The given account was not found!");
 
-            account.Balance += transaction.Value;
-            transaction.Number = account.Transactions.Count == 0 ? 1 : account.Transactions.OrderByDescending(transaction => transaction.Timestamp).First().Number + 1;
+            account.CurrentBalance += transaction.Value;
+            transaction.Number = !account.Transactions.Any() ? 1 : account.Transactions.OrderByDescending(transaction => transaction.Timestamp).First().Number + 1;
             transaction.Timestamp = DateTime.Now;
             _context.Transactions.Add(transaction);
             
@@ -65,7 +65,7 @@ namespace Casheesh.Controllers
                 return NotFound();
             }
 
-            transaction.Account.Balance -= transaction.Value;
+            transaction.Account.CurrentBalance -= transaction.Value;
             _context.Transactions.Remove(transaction);
             await _context.SaveChangesAsync();
 

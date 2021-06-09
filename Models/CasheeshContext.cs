@@ -5,17 +5,25 @@ namespace Casheesh.Models
 {
     public class CasheeshContext : DbContext
     {
+        public DbSet<Account> Accounts { get; set; }
+        public DbSet<Balance> Balances { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<Recurrence> Recurrences { get; set; }
-        public DbSet<Account> Accounts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Account>()
+                .HasIndex(account => account.Order)
+                .IsUnique();
+
+            modelBuilder.Entity<Balance>()
+                .HasKey(balance => new { balance.AccountName, balance.Id });
+   
             modelBuilder.Entity<Transaction>()
                 .HasKey(transaction => new { transaction.AccountName, transaction.Number });
 
             modelBuilder.Entity<Recurrence>()
-                .HasKey(recurrence => new { recurrence.AccountName, recurrence.Name });                    
+                .HasKey(recurrence => new { recurrence.AccountName, recurrence.Name });
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

@@ -238,3 +238,12 @@ input.invisible-toggle:checked ~ .button-label .close-button {
 .color-red {
     color: #ff6363!important
 }
+
+.card-worth {
+    width: 300px;
+}
+
+.card-worth-graph {
+    width: 750px;
+    height: 457px;
+}

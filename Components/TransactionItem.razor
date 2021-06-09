@@ -80,7 +80,7 @@
 
         Transaction.Value = NewTransactionValue;
         Transaction.Description = NewTransactionDescription;
-        Account.Balance += (Transaction.Value - ((Transaction)Context.Entry(Transaction).OriginalValues.ToObject()).Value);
+        Account.CurrentBalance += (Transaction.Value - ((Transaction)Context.Entry(Transaction).OriginalValues.ToObject()).Value);
         await Context.SaveChangesAsync();
 
         await AccountChanged.InvokeAsync(Account);
@@ -95,7 +95,7 @@
             await JSRuntime.InvokeVoidAsync("UncheckElement", TransactionsCreationCheckboxReference);
 
             Account.Transactions.Remove(Transaction);
-            Account.Balance -= Transaction.Value;
+            Account.CurrentBalance -= Transaction.Value;
             await Context.SaveChangesAsync();
 
             await AccountChanged.InvokeAsync(Account);

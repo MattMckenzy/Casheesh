@@ -18,8 +18,9 @@
         <input @bind="NewTransactionDescription" class="name-input m-0 w-100" Name="NewTransactionDescription" />
     </div>
     <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center justify-content-between mx-3 mb-3">
-        <div>
-            <label class="text-stroke m-0 mr-2">Value:</label>
+        <div class="d-flex flex-row align-items-center">
+            <i class="button-bright mdi mdi-swap-horizontal icon-responsive m-0 mr-2" @onclick="ToggleValueMode"></i>
+            <label class="text-stroke m-0 mr-2">@(IsTransactionMode ? "Value:" : "New balance:")</label>
             <input @bind="NewTransactionValue" class="name-input text-right m-0" type="number" step="0.01" style="width:94px;" Name="NewTransactionValue" />
         </div>
         <i class="button-bright mdi mdi-content-save icon-responsive m-0" @onclick="CreateTransaction"></i>
@@ -50,6 +51,7 @@
     }
 
     private bool IsShowingTransactionCreation { get; set; } = false;
+    private bool IsTransactionMode { get; set; } = true;
 
     private ElementReference TransactionsCreationCheckboxReference { get; set; }
     private ElementReference TransactionCreationContainerReference { get; set; }
@@ -71,6 +73,20 @@
         }
     }
 
+    private Task ToggleValueMode()
+    {
+        if (!IsTransactionMode)
+        {
+            IsTransactionMode = true;
+        }
+        else
+        {
+            IsTransactionMode = false;
+        }
+
+        return Task.CompletedTask;
+    }
+
     private async Task CreateTransaction()
     {
         if (NewTransactionValue == 0)
@@ -79,16 +95,16 @@
             return;
         }
 
-        Transaction transaction = new Transaction 
-        { 
-            Description = NewTransactionDescription, 
-            Value = NewTransactionValue, 
-            AccountName = Account.Name, 
-            Timestamp = DateTime.Now, 
-            Number = Account.Transactions.Count == 0 ? 1 : Account.Transactions.OrderByDescending(transaction => transaction.Timestamp).First().Number+1 
+        Transaction transaction = new Transaction
+        {
+            Description = NewTransactionDescription,
+            Value = IsTransactionMode ? NewTransactionValue : NewTransactionValue - Account.CurrentBalance,
+            AccountName = Account.Name,
+            Timestamp = DateTime.Now,
+            Number = !Account.Transactions.Any() ? 1 : Account.Transactions.OrderByDescending(transaction => transaction.Timestamp).First().Number+1
         };
         Account.Transactions.Add(transaction);
-        Account.Balance += NewTransactionValue;
+        Account.CurrentBalance += IsTransactionMode ? NewTransactionValue : NewTransactionValue - Account.CurrentBalance;
         await Context.SaveChangesAsync();
 
         await ToggleTransactionCreation();

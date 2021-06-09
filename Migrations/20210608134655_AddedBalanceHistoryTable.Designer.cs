@@ -3,14 +3,16 @@ using System;
 using Casheesh.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Casheesh.Migrations
 {
     [DbContext(typeof(CasheeshContext))]
-    partial class CasheeshContextModelSnapshot : ModelSnapshot
+    [Migration("20210608134655_AddedBalanceHistoryTable")]
+    partial class AddedBalanceHistoryTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,13 +26,7 @@ namespace Casheesh.Migrations
                     b.Property<double>("CurrentBalance")
                         .HasColumnType("REAL");
 
-                    b.Property<int>("Order")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Name");
-
-                    b.HasIndex("Order")
-                        .IsUnique();
 
                     b.ToTable("Accounts");
                 });

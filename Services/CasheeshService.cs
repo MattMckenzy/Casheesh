@@ -43,18 +43,33 @@ namespace Casheesh.Services
                         {
                             context.Transactions.Add(new Transaction
                             {
-                                Number = recurrence.Account.Transactions.Count == 0 ? 1 : recurrence.Account.Transactions.OrderByDescending(transaction => transaction.Timestamp).First().Number + 1,
+                                Number = !recurrence.Account.Transactions.Any() ? 1 : recurrence.Account.Transactions.OrderByDescending(transaction => transaction.Timestamp).First().Number + 1,
                                 AccountName = recurrence.AccountName,
                                 Value = recurrence.Value,
                                 Description = $"Recurring transaction: {recurrence.Name} - {recurrence.Description}",
                                 Timestamp = DateTime.Now
                             });
                             recurrence.LastApplied = DateTime.Now;
-                            recurrence.Account.Balance += recurrence.Value;
-
-                            await context.SaveChangesAsync(stoppingToken);
+                            recurrence.Account.CurrentBalance += recurrence.Value;
                         }
                     }
+
+                    foreach (Account account in context.Accounts)
+                    {
+                        Balance latestBalance = account.Balances.OrderByDescending(balance => balance.Id).FirstOrDefault();
+                        if (latestBalance == null || (DateTime.Now.Date < latestBalance.Timestamp && latestBalance.Value != account.CurrentBalance))
+                        {
+                            context.Balances.Add(new Balance
+                            {
+                                AccountName = account.Name,
+                                Id = !account.Balances.Any() ? 1 : latestBalance.Id + 1,
+                                Value = account.CurrentBalance,
+                                Timestamp = DateTime.Now                                
+                            });
+                        }
+                    }
+
+                    await context.SaveChangesAsync(stoppingToken);
 
                     await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
                 }
