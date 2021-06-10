@@ -13,8 +13,7 @@ namespace Casheesh.Models
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Account>()
-                .HasIndex(account => account.Order)
-                .IsUnique();
+                .HasIndex(account => account.Order);
 
             modelBuilder.Entity<Balance>()
                 .HasKey(balance => new { balance.AccountName, balance.Id });

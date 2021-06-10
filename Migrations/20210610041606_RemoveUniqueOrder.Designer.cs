@@ -3,14 +3,16 @@ using System;
 using Casheesh.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Casheesh.Migrations
 {
     [DbContext(typeof(CasheeshContext))]
-    partial class CasheeshContextModelSnapshot : ModelSnapshot
+    [Migration("20210610041606_RemoveUniqueOrder")]
+    partial class RemoveUniqueOrder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

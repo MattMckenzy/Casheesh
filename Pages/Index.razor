@@ -10,22 +10,23 @@
         <div class="col-auto m-3 p-0 button-container button-container-36">
             <input @ref="AccountCreationCheckboxReference" class="invisible-toggle" type="checkbox" id="AccountCreationToggle" />
             <label class="button-label button-label-36 m-0" for="AccountCreationToggle">
-                <i class="button-bright position-absolute open-button mdi mdi-bank-plus mdi-36px icon-responsive-36" @onclick="ToggleAccountCreation"></i>
-                <i class="button-bright position-absolute close-button mdi mdi-close mdi-36px icon-responsive-36" @onclick="ToggleAccountCreation"></i>
+                <i class="button-bright position-absolute open-button mdi mdi-pencil mdi-36px icon-responsive-36" @onclick="ToggleEditMode"></i>
+                <i class="button-bright position-absolute close-button mdi mdi-close mdi-36px icon-responsive-36" @onclick="ToggleEditMode"></i>
             </label>
         </div>
     </div>
 
     <div @ref="AccountCreationContainerReference" class="hidden-container d-flex flex-row bd-highlight align-items-center overflow-hidden justify-content-end mb-3 mr-2">
+        <i class="button-bright button-label-36 mdi mdi-bank-plus mdi-36px m-0 mr-2"></i>
         <label class="text-stroke m-0 mr-2">Name:</label>
         <input @bind="NewAccountName" class="name-input m-0 mr-2" Name="NewAccountName" />
         <i class="button-bright mdi mdi-content-save icon-responsive m-0" @onclick="CreateAccount"></i>
     </div>
 
     <div class="d-flex flex-wrap m-0 justify-content-center">
-        @foreach (Account account in Context.Accounts)
+        @foreach (Account account in Context.Accounts.OrderBy(account => account.Order))
         {
-            <AccountCard Account="account" AccountChangedCallback="RefreshBalance" />
+            <AccountCard Account="account" @ref="AccountCardReference" AccountChangedCallback="RefreshBalance" AccountOrderChangedCallback="ChangeAccountOrder" IsEditing="IsEditing" />
         }
 
         <div class="card card-worth-graph bg-dark text-white m-3">
@@ -36,7 +37,7 @@
                 </div>
                 <h3 class="col card-text text-stroke p-0 text-right @(NetWorth >= 0 ? "color-teal" : NetWorth <= 0 ? "color-red" : string.Empty)">@NetWorth.ToString("C", CultureInfo.GetCultureInfo("en-CA"))</h3>
             </div>
-            <div class="p-3">
+            <div class="p-3 w-100 h-100">
                 <Chart @ref="Chart" Config="LineConfig"></Chart>
             </div>            
         </div>
@@ -46,9 +47,12 @@
 @code
 {
     private string NewAccountName { get; set; }
-    private bool IsShowingAccountCreation { get; set; } = false;
+    private bool IsEditing { get; set; } = false;
     private ElementReference AccountCreationCheckboxReference { get; set; }
     private ElementReference AccountCreationContainerReference { get; set; }
+
+    private List<AccountCard> AccountCardReferences = new();
+    private AccountCard AccountCardReference { set => AccountCardReferences.Add(value); }
 
     private double NetWorth = 0;
 
@@ -76,6 +80,7 @@
             Options = new LineOptions
             {
                 Responsive = true,
+                MaintainAspectRatio = false,
                 Tooltips = new Tooltips
                 {
                     Mode = InteractionMode.Nearest,
@@ -89,7 +94,7 @@
                 Scales = new Scales
                 {
                     XAxes = new List<CartesianAxis>
-                    {
+                {
                         new TimeAxis
                         {
                             ScaleLabel = new ScaleLabel
@@ -109,9 +114,9 @@
                                 Color = "#6c757d"
                             }
                         }
-                    },
+                },
                     YAxes = new List<CartesianAxis>
-                    {
+                {
                         new LinearCartesianAxis
                         {
                             ScaleLabel = new ScaleLabel
@@ -126,9 +131,9 @@
                             GridLines = new GridLines
                             {
                                 Color = "#6c757d"
-                            }                            
+                            }
                         }
-                    }
+                }
                 },
                 Legend = new Legend
                 {
@@ -139,7 +144,7 @@
                 }
             },
         };
-                    
+
         foreach (Account account in Context.Accounts)
         {
             LineConfig.Data.Datasets.Add(new LineDataset<TimePoint>(account.Balances.Select(balance => new TimePoint(balance.Timestamp.Date, balance.Value)))
@@ -154,17 +159,17 @@
         await RefreshBalance();
     }
 
-    private async Task ToggleAccountCreation()
+    private async Task ToggleEditMode()
     {
-        if (!IsShowingAccountCreation)
+        if (!IsEditing)
         {
             await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCreationContainerReference, 38);
-            IsShowingAccountCreation = true;
+            IsEditing = true;
         }
         else
         {
             await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCreationContainerReference, 0);
-            IsShowingAccountCreation = false;
+            IsEditing = false;
         }
     }
 
@@ -181,16 +186,43 @@
             Name = NewAccountName,
             Order = !Context.Accounts.Any() ? 1 : Context.Accounts.OrderByDescending(account => account.Order).First().Order + 1
         });
+
+        int orderReset = 1;
+        foreach (Account account in Context.Accounts.OrderBy(account => account.Order).ToList())
+            account.Order = orderReset++;
+
         await Context.SaveChangesAsync();
 
         NewAccountName = string.Empty;
-        await ToggleAccountCreation();
-        await JSRuntime.InvokeAsync<string>("UncheckElement", AccountCreationCheckboxReference);
     }
 
     private async Task RefreshBalance()
     {
         NetWorth = Context.Accounts.Sum(account => account.CurrentBalance);
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ChangeAccountOrder((string AccountName, bool moveUp) newAccountOrder)
+    {
+        Account changingAccount = Context.Accounts.Find(newAccountOrder.AccountName);
+        int newAccountOrderNumber = newAccountOrder.moveUp ? changingAccount.Order - 1 : changingAccount.Order + 1;
+        changingAccount.Order = newAccountOrderNumber;
+        ElementReference changingAccountCardReference = AccountCardReferences.First(accountCardReference => accountCardReference.Account.Name == newAccountOrder.AccountName).AccountCardReference;
+
+        Account affectedAccount = Context.Accounts.First(account => account.Order == newAccountOrderNumber);
+        if (newAccountOrder.moveUp)
+            affectedAccount.Order++;
+        else if (!newAccountOrder.moveUp)
+            affectedAccount.Order--;
+        ElementReference affectedAccountCardReference = AccountCardReferences.First(accountCardReference => accountCardReference.Account.Name == affectedAccount.Name).AccountCardReference;
+
+        await JSRuntime.InvokeVoidAsync("PullAway", changingAccountCardReference);
+        await JSRuntime.InvokeVoidAsync("PullAway", affectedAccountCardReference);
+
+        await Context.SaveChangesAsync();
+        await InvokeAsync(StateHasChanged);
+
+        await JSRuntime.InvokeVoidAsync("BringBack", changingAccountCardReference);
+        await JSRuntime.InvokeVoidAsync("BringBack", affectedAccountCardReference);
     }
 }

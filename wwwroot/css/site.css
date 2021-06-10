@@ -122,6 +122,11 @@ a, .btn-link {
     line-height: 28px;
 }
 
+.mdi-36px::before {
+    font-size: 36px;
+    line-height: 36px;
+}
+
 .card {
     height: 106px;
     width: 500px;
@@ -246,4 +251,70 @@ input.invisible-toggle:checked ~ .button-label .close-button {
 .card-worth-graph {
     width: 750px;
     height: 457px;
+}
+
+h3 {
+    font-size: 1.75rem;
+}
+
+h4 {
+    font-size: 1.5rem;
+}
+
+@media (max-width: 1399.98px) {
+    h3 {
+        font-size: 1.6rem;
+    }
+    h4 {
+        font-size: 1.4rem;
+    }
+}
+
+@media (max-width: 1199.98px) {
+    h3 {
+        font-size: 1.45rem;
+    }
+    h4 {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 991.98px) {
+    h3 {
+        font-size: 1.3rem;
+    }
+    h4 {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    h3 {
+        font-size: 1.2rem;
+    }
+    h4 {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    h3 {
+        font-size: 1.1rem;
+    }
+    h4 {
+        font-size: 1.0rem;
+    }
+}
+
+.editing-container {
+    opacity: 0%;
+    pointer-events: none;
+    -webkit-transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+}
+
+.pull-away {
+    opacity: 0%;
+    -webkit-transform: translateY(-100%);
+    transform: translateY(-100%);
 }

@@ -4,9 +4,13 @@
 @if (Account != null)
 {
     <div @ref="@AccountCardReference" class="card bg-dark text-white m-3">
-        <div class="d-flex flex-row justify-content-between">
+        <div class="d-flex flex-row justify-content-between align-items-center">
             <h4 class="card-title text-stroke p-3 m-0">@Account.Name</h4>
-            <i class="button-bright color-red button-subtle float-right mdi mdi-bank-minus icon-responsive p-3 m-0" @onclick="DeleteAccount"></i>
+            <div @ref="EditingContainerReference" class="editing-container p-3 m-0">
+                <i class="button-bright icon-responsive @(Account.Order == 1 ? " button-disabled" : string.Empty) mdi mdi-arrow-top-left-thick mr-2" @onclick="MoveAccountUp"></i>
+                <i class="button-bright icon-responsive @(Account.Order == Context.Accounts.Max(account => account.Order) ? " button-disabled" : string.Empty) mdi mdi-arrow-bottom-right-thick mr-2" @onclick="MoveAccountDown"></i>
+                <i class="button-bright color-red mdi mdi-bank-minus icon-responsive" @onclick="DeleteAccount"></i>
+            </div>            
         </div>
 
         <div class="row m-0 w-100 align-items-center">
@@ -47,23 +51,62 @@
 
     [Parameter]
     public Account Account { get; set; }
-
     private Account BoundAccount
     {
         get => Account;
         set => AccountChangedCallback.InvokeAsync(value);
     }
-
     [Parameter]
     public EventCallback AccountChangedCallback { get; set; }
 
-    private ElementReference AccountCardReference { get; set; }
+    [Parameter]
+    public bool IsEditing
+    {
+        get => BoundIsEditing;
+        set { BoundIsEditing = value; ToggleEditing(); }
+    }
+    private bool BoundIsEditing { get; set; }
+
+    [Parameter]
+    public EventCallback<(string, bool)> AccountOrderChangedCallback { get; set; }
+
+    public ElementReference AccountCardReference { get; set; }
+
+    private ElementReference EditingContainerReference { get; set; }
     private ElementReference TransactionsToggleCheckboxReference { get; set; }
     private ElementReference RecurrencesToggleCheckboxReference { get; set; }
 
     private bool IsShowingTransactions { get; set; } = false;
     private bool IsShowingRecurrences { get; set; } = false;
     private bool IsTransitioning { get; set; } = false;
+    private bool IsRendered { get; set; } = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+            IsRendered = true;
+    }
+
+    private async void ToggleEditing()
+    {
+        if (IsRendered && BoundIsEditing)
+        {
+            await JSRuntime.InvokeVoidAsync("ShowContainer", EditingContainerReference);
+        }
+        else if (IsRendered)
+        {
+            await JSRuntime.InvokeVoidAsync("HideContainer", EditingContainerReference);
+        }
+    }
+
+    private async Task MoveAccountUp() =>
+        await AccountOrderChangedCallback.InvokeAsync((Account.Name, true));
+
+    private async Task MoveAccountDown() =>
+        await AccountOrderChangedCallback.InvokeAsync((Account.Name, false));
+
 
     private async Task DeleteAccount()
     {
@@ -71,6 +114,11 @@
         if (isDeletingAccount)
         {
             Context.Accounts.Remove(Account);
+
+            int orderReset = 1;
+            foreach (Account account in Context.Accounts.OrderBy(account => account.Order).ToList())
+                account.Order = orderReset++;
+
             await Context.SaveChangesAsync();
             Account = null;
         }
