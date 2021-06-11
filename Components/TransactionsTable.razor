@@ -1,7 +1,7 @@
 ﻿@inject IJSRuntime JSRuntime
 @inject CasheeshContext Context  
 
-<div class="row align-items-center m-3">
+<div class="row align-items-center mx-3 mt-3">
     <h5 class="col m-0 p-0 text-stroke">Transactions</h5>
     <div class="col-auto p-0 button-container button-container-36">
         <input @ref="TransactionsCreationCheckboxReference" class="invisible-toggle" type="checkbox" id="CreateTransactionToggle@(Account.Name)" />
@@ -13,7 +13,7 @@
 </div>
 
 <div @ref="TransactionCreationContainerReference" class="hidden-container bd-highlight overflow-hidden">
-    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 mb-2">
+    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 my-2">
         <label class="text-stroke m-0 mr-2">Description:</label>
         <input @bind="NewTransactionDescription" class="name-input m-0 w-100" Name="NewTransactionDescription" />
     </div>
@@ -27,7 +27,7 @@
     </div>
 </div>
 
-<ul class="list-group list-group-flush">
+<ul class="list-group list-group-flush my-3">
     @foreach (Transaction transaction in Account.Transactions.OrderByDescending(transaction => transaction.Number).ToList())
     {
         Transaction transactionEntity = Context.Transactions.Find(transaction.AccountName, transaction.Number);
@@ -63,7 +63,7 @@
     {
         if (!IsShowingTransactionCreation)
         {
-            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", TransactionCreationContainerReference, 82);
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", TransactionCreationContainerReference, 78);
             IsShowingTransactionCreation = true;
         }
         else
@@ -89,12 +89,6 @@
 
     private async Task CreateTransaction()
     {
-        if (NewTransactionValue == 0)
-        {
-            await JSRuntime.InvokeAsync<string>("alert", $"Please enter a non-zero value for the transaction amount.");
-            return;
-        }
-
         Transaction transaction = new Transaction
         {
             Description = NewTransactionDescription,
@@ -103,6 +97,7 @@
             Timestamp = DateTime.Now,
             Number = !Account.Transactions.Any() ? 1 : Account.Transactions.OrderByDescending(transaction => transaction.Timestamp).First().Number+1
         };
+
         Account.Transactions.Add(transaction);
         Account.CurrentBalance += IsTransactionMode ? NewTransactionValue : NewTransactionValue - Account.CurrentBalance;
         await Context.SaveChangesAsync();

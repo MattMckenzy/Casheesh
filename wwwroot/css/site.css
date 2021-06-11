@@ -236,6 +236,18 @@ input.invisible-toggle:checked ~ .button-label .close-button {
     width: 250px;
 }
 
+.input-invalid {
+    border: 2px solid #ee5f5b;
+    border-radius: 3px;
+    outline-color: #ee5f5b
+}
+
+.input-valid {
+    border: 2px solid #5bee5f;
+    border-radius: 3px;
+    outline-color: #5bee5f
+}
+
 .color-teal {
     color: #2dffe7!important;
 }

@@ -1,7 +1,7 @@
 ﻿@inject IJSRuntime JSRuntime
 @inject CasheeshContext Context
 
-<div class="row align-items-center m-3">
+<div class="row align-items-center mx-3 mt-3">
     <h5 class="col m-0 p-0 text-stroke">Recurrences</h5>
     <div class="col-auto p-0 button-container button-container-36">
         <input @ref="RecurrencesCreationCheckboxReference" class="invisible-toggle" type="checkbox" id="CreateRecurrenceToggle@(Account.Name)" />
@@ -13,9 +13,9 @@
 </div>
 
 <div @ref="RecurrenceCreationContainerReference" class="hidden-container bd-highlight overflow-hidden">
-    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 mb-2">
+    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 my-2">
         <label class="text-stroke m-0 mr-2">Name:</label>
-        <input @bind="NewRecurrenceName" class="name-input m-0" style="width:150px;" Name="NewRecurrenceName" />
+        <input @bind="NewRecurrenceName" class="name-input @(IsNewRecurrenceNameValid ? "input-valid" : "input-invalid") m-0" style="width:150px;" @oninput="NewRecurrenceNameChanged" Name="NewRecurrenceName" />
     </div>
     <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 mb-2">
         <label class="text-stroke m-0 mr-2">Description:</label>
@@ -34,11 +34,11 @@
             <label class="text-stroke m-0 mr-2">Value:</label>
             <input @bind="NewRecurrenceValue" class="name-input text-right m-0" type="number" step="0.01" style="width:94px;" Name="NewRecurrenceValue" />
         </div>
-        <i class="button-bright mdi mdi-content-save icon-responsive m-0" @onclick="CreateRecurrence"></i>
+        <i class="button-bright mdi @(IsNewRecurrenceNameValid ? string.Empty : "button-disabled") mdi-content-save icon-responsive m-0" @onclick="CreateRecurrence"></i>
     </div>
 </div>
 
-<ul class="list-group list-group-flush">
+<ul class="list-group list-group-flush my-3">
     @foreach (Recurrence recurrence in Account.Recurrences.OrderByDescending(recurrence => recurrence.LastApplied).ToList())
     {
         Recurrence recurrenceEntity = Context.Recurrences.Find(recurrence.AccountName, recurrence.Name);
@@ -62,6 +62,7 @@
     }
 
     private bool IsShowingRecurrenceCreation { get; set; } = false;
+    private bool IsNewRecurrenceNameValid { get; set; } = false;
 
     private ElementReference RecurrencesCreationCheckboxReference { get; set; }
     private ElementReference RecurrenceCreationContainerReference { get; set; }
@@ -72,11 +73,21 @@
     private int NewRecurrenceDays { get; set; } = 0;
     private DateTime NewRecurrenceFirstDate { get; set; } = DateTime.Now;
 
+    private async Task NewRecurrenceNameChanged(ChangeEventArgs changeEventArgs)
+    {
+        if (string.IsNullOrWhiteSpace((string)changeEventArgs.Value) || await Context.FindAsync<Recurrence>(Account.Name, (string)changeEventArgs.Value) != null)
+            IsNewRecurrenceNameValid = false;
+        else
+            IsNewRecurrenceNameValid = true;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
     private async Task ToggleRecurrenceCreation()
     {
         if (!IsShowingRecurrenceCreation)
         {
-            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", RecurrenceCreationContainerReference, 200);
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", RecurrenceCreationContainerReference, 192);
             IsShowingRecurrenceCreation = true;
         }
         else
@@ -88,9 +99,9 @@
 
     private async Task CreateRecurrence()
     {
-        if (NewRecurrenceValue == 0)
+        if (string.IsNullOrWhiteSpace(NewRecurrenceName) || await Context.FindAsync<Recurrence>(Account.Name, NewRecurrenceName) != null)
         {
-            await JSRuntime.InvokeAsync<string>("alert", $"Please enter a non-zero value for the transaction amount.");
+            await JSRuntime.InvokeAsync<string>("alert", $"Please enter a valid unique name for the account.");
             return;
         }
 

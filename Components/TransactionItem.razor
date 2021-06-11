@@ -15,7 +15,7 @@
     <div class="text-stroke text-right @(Transaction.Value >= 0 ? "color-teal" : Transaction.Value <= 0 ? "color-red" : string.Empty)">@(Transaction.Value.ToString("C", CultureInfo.GetCultureInfo("en-CA")))</div>
 </div>
 <div @ref="TransactionEditingContainerReference" class="hidden-container bd-highlight overflow-hidden">
-    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center my-2">
+    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center my-2 mr-1">
         <label class="text-stroke m-0 mr-2">Description:</label>
         <input @bind="NewTransactionDescription" class="name-input m-0 w-100" Name="NewTransactionDescription" />
     </div>

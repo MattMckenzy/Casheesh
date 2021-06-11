@@ -19,8 +19,8 @@
     <div @ref="AccountCreationContainerReference" class="hidden-container d-flex flex-row bd-highlight align-items-center overflow-hidden justify-content-end mb-3 mr-2">
         <i class="button-bright button-label-36 mdi mdi-bank-plus mdi-36px m-0 mr-2"></i>
         <label class="text-stroke m-0 mr-2">Name:</label>
-        <input @bind="NewAccountName" class="name-input m-0 mr-2" Name="NewAccountName" />
-        <i class="button-bright mdi mdi-content-save icon-responsive m-0" @onclick="CreateAccount"></i>
+        <input @bind="NewAccountName" class="@(IsNewAccountNameValid ? "input-valid" : "input-invalid") input-name m-0 mr-2" id="AccountName" aria-describedby="AccountNameFeedback" @oninput="NewAccountNameChanged" required />
+        <i class="button-bright @(IsNewAccountNameValid ? string.Empty : "button-disabled") mdi mdi-content-save icon-responsive m-0" @onclick="CreateAccount"></i>
     </div>
 
     <div class="d-flex flex-wrap m-0 justify-content-center">
@@ -47,6 +47,8 @@
 @code
 {
     private string NewAccountName { get; set; }
+    private bool IsNewAccountNameValid { get; set; } = false;
+
     private bool IsEditing { get; set; } = false;
     private ElementReference AccountCreationCheckboxReference { get; set; }
     private ElementReference AccountCreationContainerReference { get; set; }
@@ -173,6 +175,16 @@
         }
     }
 
+    private async Task NewAccountNameChanged(ChangeEventArgs changeEventArgs)
+    {
+        if (string.IsNullOrWhiteSpace((string)changeEventArgs.Value) || await Context.FindAsync<Account>((string)changeEventArgs.Value) != null)
+            IsNewAccountNameValid = false;
+        else
+            IsNewAccountNameValid = true;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
     private async Task CreateAccount()
     {
         if (string.IsNullOrWhiteSpace(NewAccountName) || await Context.FindAsync<Account>(NewAccountName) != null)
@@ -194,6 +206,7 @@
         await Context.SaveChangesAsync();
 
         NewAccountName = string.Empty;
+        IsNewAccountNameValid = false;
     }
 
     private async Task RefreshBalance()
