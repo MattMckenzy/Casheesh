@@ -32,10 +32,9 @@
         <div class="card card-worth-graph bg-dark text-white m-3">
             <div class="d-flex flex-row justify-content-between p-3">
                 <div class="d-flex flex-row align-items-center">
-                    <i class="button-label mdi mdi-chart-line mr-3"></i>
                     <h4 class="card-title text-stroke m-0">Net Worth by Date</h4>
                 </div>
-                <h3 class="col card-text text-stroke p-0 text-right @(NetWorth >= 0 ? "color-teal" : NetWorth <= 0 ? "color-red" : string.Empty)">@NetWorth.ToString("C", CultureInfo.GetCultureInfo("en-CA"))</h3>
+                <i class="button-label mdi mdi-chart-line"></i>
             </div>
             <div class="p-3 w-100 h-100">
                 <Chart @ref="Chart" Config="LineConfig"></Chart>

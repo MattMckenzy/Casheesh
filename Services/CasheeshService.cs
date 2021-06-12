@@ -54,10 +54,17 @@ namespace Casheesh.Services
                         }
                     }
 
+                    Account netWorthAccount = await context.Accounts.FindAsync(new object[] { "Net Worth" }, cancellationToken: stoppingToken);
+                    if (netWorthAccount != null)
+                    {
+                        context.RemoveRange(netWorthAccount.Transactions);
+                        netWorthAccount.CurrentBalance = context.Accounts.Sum(account => account.Name == "Net Worth" ? 0 : account.CurrentBalance);
+                    }
+
                     foreach (Account account in context.Accounts)
                     {
                         Balance latestBalance = account.Balances.OrderByDescending(balance => balance.Id).FirstOrDefault();
-                        if (latestBalance == null || (DateTime.Now.Date < latestBalance.Timestamp && latestBalance.Value != account.CurrentBalance))
+                        if (latestBalance == null || (DateTime.Now.Date > latestBalance.Timestamp.Date && latestBalance.Value != account.CurrentBalance))
                         {
                             context.Balances.Add(new Balance
                             {

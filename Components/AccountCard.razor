@@ -14,20 +14,23 @@
         </div>
 
         <div class="row m-0 w-100 align-items-center">
-            <div class="col-auto mx-3 mb-3 p-0 button-container button-container">
-                <input @ref="TransactionsToggleCheckboxReference" class="invisible-toggle" type="checkbox" id="TransactionsToggle@(Account.Name)" />
-                <label class="button-label m-0" for="TransactionsToggle@(Account.Name)">
-                    <i class="button-bright position-absolute open-button mdi mdi-bank-transfer icon-responsive" @onclick="ToggleTransactions"></i>
-                    <i class="button-bright position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleTransactions"></i>
-                </label>
-            </div>
-            <div class="col-auto mr-3 mb-3 p-0 button-container button-container">
-                <input @ref="RecurrencesToggleCheckboxReference" class="invisible-toggle" type="checkbox" id="RecurrencesToggle@(Account.Name)" />
-                <label class="button-label m-0" for="RecurrencesToggle@(Account.Name)">
-                    <i class="button-bright position-absolute open-button mdi mdi-autorenew icon-responsive" @onclick="ToggleRecurrences"></i>
-                    <i class="button-bright position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleRecurrences"></i>
-                </label>
-            </div>
+            @if (Account.Name != "Net Worth") 
+            {
+                <div class="col-auto mx-3 mb-3 p-0 button-container button-container">
+                    <input @ref="TransactionsToggleCheckboxReference" class="invisible-toggle" type="checkbox" id="TransactionsToggle@(Account.Name)" />
+                    <label class="button-label m-0" for="TransactionsToggle@(Account.Name)">
+                        <i class="button-bright position-absolute open-button mdi mdi-bank-transfer icon-responsive" @onclick="ToggleTransactions"></i>
+                        <i class="button-bright position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleTransactions"></i>
+                    </label>
+                </div>
+                <div class="col-auto mr-3 mb-3 p-0 button-container button-container">
+                    <input @ref="RecurrencesToggleCheckboxReference" class="invisible-toggle" type="checkbox" id="RecurrencesToggle@(Account.Name)" />
+                    <label class="button-label m-0" for="RecurrencesToggle@(Account.Name)">
+                        <i class="button-bright position-absolute open-button mdi mdi-autorenew icon-responsive" @onclick="ToggleRecurrences"></i>
+                        <i class="button-bright position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleRecurrences"></i>
+                    </label>
+                </div>
+            }
             <h3 class="col card-text text-stroke px-3 pb-3 m-0 text-right @(Account.CurrentBalance >= 0 ? "color-teal" : Account.CurrentBalance <= 0 ? "color-red" : string.Empty)">@Account.CurrentBalance.ToString("C", CultureInfo.GetCultureInfo("en-CA"))</h3>
         </div>
 
