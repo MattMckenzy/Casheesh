@@ -148,7 +148,7 @@
 
         foreach (Account account in Context.Accounts)
         {
-            LineConfig.Data.Datasets.Add(new LineDataset<TimePoint>(account.Balances.Select(balance => new TimePoint(balance.Timestamp.Date, balance.Value)))
+            LineConfig.Data.Datasets.Add(new LineDataset<TimePoint>(account.Balances.OrderBy(balance => balance.Timestamp).Select(balance => new TimePoint(balance.Timestamp.Date, balance.Value)))
             {
                 Label = account.Name,
                 LineTension = 0,
@@ -210,8 +210,9 @@
 
     private async Task RefreshBalance()
     {
-        NetWorth = Context.Accounts.Sum(account => account.CurrentBalance);
-        await InvokeAsync(StateHasChanged);
+        AccountCard netWorthCard = AccountCardReferences.FirstOrDefault(accountCard => accountCard.Account.Name == "Net Worth");
+        if (netWorthCard != null)
+            await netWorthCard.UpdateNetWorth();        
     }
 
     private async Task ChangeAccountOrder((string AccountName, bool moveUp) newAccountOrder)

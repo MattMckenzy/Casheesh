@@ -18,13 +18,22 @@ HideContainer = (element) => {
     element.style.pointerEvents = "none";
 };
 
-PullAway = (element, newTop) => {
+PullAway = (element) => {
     element.classList.add("pull-away");
 };
 
 BringBack = (element) => {
     element.classList.remove("pull-away");
 };
+
+CardContainerExpand = (element) => {
+    element.classList.add("card-container-expanded");
+};
+
+CardContainerShrink = (element) => {
+    element.classList.remove("card-container-expanded");
+};
+
 
 var currencyFormatter = new Intl.NumberFormat("en-CA", {
     style: 'currency',

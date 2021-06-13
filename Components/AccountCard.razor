@@ -3,51 +3,64 @@
 
 @if (Account != null)
 {
-    <div @ref="@AccountCardReference" class="card bg-dark text-white m-3">
-        <div class="d-flex flex-row justify-content-between align-items-center">
-            <h4 class="card-title text-stroke p-3 m-0">@Account.Name</h4>
-            <div @ref="EditingContainerReference" class="editing-container p-3 m-0">
-                <i class="button-bright icon-responsive @(Account.Order == 1 ? " button-disabled" : string.Empty) mdi mdi-arrow-top-left-thick mr-2" @onclick="MoveAccountUp"></i>
-                <i class="button-bright icon-responsive @(Account.Order == Context.Accounts.Max(account => account.Order) ? " button-disabled" : string.Empty) mdi mdi-arrow-bottom-right-thick mr-2" @onclick="MoveAccountDown"></i>
-                <i class="button-bright color-red mdi mdi-bank-minus icon-responsive" @onclick="DeleteAccount"></i>
-            </div>            
+<div @ref="AccountCardReference" class="card bg-dark text-white m-3">
+    <div class="d-flex flex-row justify-content-between align-items-center">
+        <h4 class="card-title text-stroke p-3 m-0">@Account.Name</h4>
+        <div @ref="EditingContainerReference" class="editing-container p-3 m-0">
+            <i class="button-bright icon-responsive @(Account.Order == 1 ? " button-disabled" : string.Empty) mdi mdi-arrow-top-left-thick mr-2" @onclick="MoveAccountUp"></i>
+            <i class="button-bright icon-responsive @(Account.Order == Context.Accounts.Max(account => account.Order) ? " button-disabled" : string.Empty) mdi mdi-arrow-bottom-right-thick mr-2" @onclick="MoveAccountDown"></i>
+            <i class="button-bright color-red mdi mdi-bank-minus icon-responsive" @onclick="DeleteAccount"></i>
         </div>
-
-        <div class="row m-0 w-100 align-items-center">
-            @if (Account.Name != "Net Worth") 
-            {
-                <div class="col-auto mx-3 mb-3 p-0 button-container button-container">
-                    <input @ref="TransactionsToggleCheckboxReference" class="invisible-toggle" type="checkbox" id="TransactionsToggle@(Account.Name)" />
-                    <label class="button-label m-0" for="TransactionsToggle@(Account.Name)">
-                        <i class="button-bright position-absolute open-button mdi mdi-bank-transfer icon-responsive" @onclick="ToggleTransactions"></i>
-                        <i class="button-bright position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleTransactions"></i>
-                    </label>
-                </div>
-                <div class="col-auto mr-3 mb-3 p-0 button-container button-container">
-                    <input @ref="RecurrencesToggleCheckboxReference" class="invisible-toggle" type="checkbox" id="RecurrencesToggle@(Account.Name)" />
-                    <label class="button-label m-0" for="RecurrencesToggle@(Account.Name)">
-                        <i class="button-bright position-absolute open-button mdi mdi-autorenew icon-responsive" @onclick="ToggleRecurrences"></i>
-                        <i class="button-bright position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleRecurrences"></i>
-                    </label>
-                </div>
-            }
-            <h3 class="col card-text text-stroke px-3 pb-3 m-0 text-right @(Account.CurrentBalance >= 0 ? "color-teal" : Account.CurrentBalance <= 0 ? "color-red" : string.Empty)">@Account.CurrentBalance.ToString("C", CultureInfo.GetCultureInfo("en-CA"))</h3>
-        </div>
-
-        @if (IsShowingTransactions)
-        {
-            <div class="card-container bg-dark @(IsTransitioning ? string.Empty : "overflow-auto") w-100">
-                <TransactionsTable @bind-Account="BoundAccount" />
-            </div>
-        }
-        else if (IsShowingRecurrences)
-        {
-            <div class="card-container bg-dark @(IsTransitioning ? string.Empty : "overflow-auto") overflow-auto w-100">
-                <RecurrencesTable @bind-Account="BoundAccount" />
-            </div>
-        }
-
     </div>
+
+    <div class="row m-0 w-100 align-items-center">
+        @if (Account.Name != "Net Worth")
+        {
+            <div class="col-auto mx-3 mb-3 p-0 button-container button-container">
+                <input @ref="TransactionsToggleCheckboxReference" class="invisible-toggle" type="checkbox" id="TransactionsToggle@(Account.Name)" />
+                <label class="button-label m-0" for="TransactionsToggle@(Account.Name)">
+                    <i class="button-bright position-absolute open-button mdi mdi-bank-transfer icon-responsive" @onclick="ToggleTransactions"></i>
+                    <i class="button-bright position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleTransactions"></i>
+                </label>
+            </div>
+            <div class="col-auto mb-3 p-0 button-container button-container">
+                <input @ref="RecurrencesToggleCheckboxReference" class="invisible-toggle" type="checkbox" id="RecurrencesToggle@(Account.Name)" />
+                <label class="button-label m-0" for="RecurrencesToggle@(Account.Name)">
+                    <i class="button-bright position-absolute open-button mdi mdi-autorenew icon-responsive" @onclick="ToggleRecurrences"></i>
+                    <i class="button-bright position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleRecurrences"></i>
+                </label>
+            </div>
+        }
+        <div class="col-auto mx-3 mb-3 p-0 button-container button-container">
+            <input @ref="BalancesToggleCheckboxReference" class="invisible-toggle" type="checkbox" id="BalancesToggle@(Account.Name)" />
+            <label class="button-label m-0" for="BalancesToggle@(Account.Name)">
+                <i class="button-bright position-absolute open-button mdi mdi-history icon-responsive" @onclick="ToggleBalances"></i>
+                <i class="button-bright position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleBalances"></i>
+            </label>
+        </div>
+        <h3 class="col card-text text-stroke px-3 pb-3 m-0 text-right @(Account.CurrentBalance >= 0 ? "color-teal" : Account.CurrentBalance <= 0 ? "color-red" : string.Empty)">@Account.CurrentBalance.ToString("C", CultureInfo.GetCultureInfo("en-CA"))</h3>
+    </div>
+
+    @if (IsShowingTransactions)
+    {
+        <div @ref="TransactionsContainerReference" class="card-container bg-dark overflow-auto w-100">
+            <TransactionsTable @bind-Account="BoundAccount" />
+        </div>
+    }
+    else if (IsShowingRecurrences)
+    {
+        <div @ref="RecurrencesContainerReference" class="card-container bg-dark overflow-auto w-100">
+            <RecurrencesTable @bind-Account="BoundAccount" />
+        </div>
+    }
+    else if (IsShowingBalances)
+    {
+        <div @ref="BalancesContainerReference" class="card-container bg-dark overflow-auto w-100">
+            <BalancesTable @bind-Account="BoundAccount" />
+        </div>
+    }
+
+</div>
 }
 
 @code {
@@ -73,15 +86,20 @@
     [Parameter]
     public EventCallback<(string, bool)> AccountOrderChangedCallback { get; set; }
 
+    [Parameter]
     public ElementReference AccountCardReference { get; set; }
 
     private ElementReference EditingContainerReference { get; set; }
     private ElementReference TransactionsToggleCheckboxReference { get; set; }
     private ElementReference RecurrencesToggleCheckboxReference { get; set; }
+    private ElementReference BalancesToggleCheckboxReference { get; set; }
+    private ElementReference TransactionsContainerReference { get; set; }
+    private ElementReference RecurrencesContainerReference { get; set; }
+    private ElementReference BalancesContainerReference { get; set; }
 
     private bool IsShowingTransactions { get; set; } = false;
     private bool IsShowingRecurrences { get; set; } = false;
-    private bool IsTransitioning { get; set; } = false;
+    private bool IsShowingBalances { get; set; } = false;
     private bool IsRendered { get; set; } = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -91,6 +109,16 @@
         if (firstRender)
             IsRendered = true;
     }
+
+    public async Task UpdateNetWorth()
+    {
+        if (Account.Name != "Net Worth")
+            return;
+
+        Account.CurrentBalance = Context.Accounts.Sum(account => account.Name == "Net Worth" ? 0 : account.CurrentBalance);
+        await Context.SaveChangesAsync();
+    }
+
 
     private async void ToggleEditing()
     {
@@ -131,27 +159,18 @@
     {
         if (!IsShowingTransactions)
         {
-            if (IsShowingRecurrences)
-            {
-                await ToggleRecurrences(null);
-                await JSRuntime.InvokeVoidAsync("UncheckElement", RecurrencesToggleCheckboxReference);
-                await InvokeAsync(StateHasChanged);
-                await Task.Delay(100);
-            }
+            await Untoggle("Transaction");
 
-            IsTransitioning = true;
             IsShowingTransactions = true;
             await InvokeAsync(StateHasChanged);
             await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCardReference, 600);
-            IsTransitioning = false;
+            await JSRuntime.InvokeVoidAsync("CardContainerExpand", TransactionsContainerReference);
         }
         else
         {
-            IsTransitioning = true;
-            await InvokeAsync(StateHasChanged);
+            await JSRuntime.InvokeVoidAsync("CardContainerShrink", TransactionsContainerReference);
             await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCardReference, 106);
             IsShowingTransactions = false;
-            IsTransitioning = false;
         }
     }
 
@@ -159,22 +178,62 @@
     {
         if (!IsShowingRecurrences)
         {
-            if (IsShowingTransactions)
-            {
-                await ToggleTransactions(null);
-                await JSRuntime.InvokeVoidAsync("UncheckElement", TransactionsToggleCheckboxReference);
-                await InvokeAsync(StateHasChanged);
-                await Task.Delay(100);
-            }
+            await Untoggle("Recurrences");
 
             IsShowingRecurrences = true;
             await InvokeAsync(StateHasChanged);
             await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCardReference, 600);
+            await JSRuntime.InvokeVoidAsync("CardContainerExpand", RecurrencesContainerReference);
         }
         else
         {
+            await JSRuntime.InvokeVoidAsync("CardContainerShrink", RecurrencesContainerReference);
             await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCardReference, 106);
             IsShowingRecurrences = false;
+        }
+    }
+
+    private async Task ToggleBalances(MouseEventArgs _)
+    {
+        if (!IsShowingBalances)
+        {
+            await Untoggle("Balances");
+
+            IsShowingBalances = true;
+            await InvokeAsync(StateHasChanged);
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCardReference, 600);
+            await JSRuntime.InvokeVoidAsync("CardContainerExpand", BalancesContainerReference);
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("CardContainerShrink", BalancesContainerReference);
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCardReference, 106);
+            IsShowingBalances = false;
+        }
+    }
+
+    private async Task Untoggle(string currentToggle)
+    {
+        if (currentToggle != "Transaction" && IsShowingTransactions)
+        {
+            await ToggleTransactions(null);
+            await JSRuntime.InvokeVoidAsync("UncheckElement", TransactionsToggleCheckboxReference);
+            await InvokeAsync(StateHasChanged);
+            await Task.Delay(100);
+        }
+        else if (currentToggle != "Recurrences" && IsShowingRecurrences)
+        {
+            await ToggleRecurrences(null);
+            await JSRuntime.InvokeVoidAsync("UncheckElement", RecurrencesToggleCheckboxReference);
+            await InvokeAsync(StateHasChanged);
+            await Task.Delay(100);
+        }
+        else if (currentToggle != "Balances" && IsShowingBalances)
+        {
+            await ToggleBalances(null);
+            await JSRuntime.InvokeVoidAsync("UncheckElement", BalancesToggleCheckboxReference);
+            await InvokeAsync(StateHasChanged);
+            await Task.Delay(100);
         }
     }
 }
