@@ -56,7 +56,7 @@
     private ElementReference TransactionsCreationCheckboxReference { get; set; }
     private ElementReference TransactionCreationContainerReference { get; set; }
 
-    private double NewTransactionValue { get; set; } = 0;
+    private string NewTransactionValue { get; set; } = string.Empty;
     private string NewTransactionDescription { get; set; }
 
     private async Task ToggleTransactionCreation()
@@ -92,19 +92,19 @@
         Transaction transaction = new Transaction
         {
             Description = NewTransactionDescription,
-            Value = IsTransactionMode ? NewTransactionValue : NewTransactionValue - Account.CurrentBalance,
+            Value = IsTransactionMode ? double.Parse(NewTransactionValue) : double.Parse(NewTransactionValue) - Account.CurrentBalance,
             AccountName = Account.Name,
             Timestamp = DateTime.Now,
             Number = !Account.Transactions.Any() ? 1 : Account.Transactions.OrderByDescending(transaction => transaction.Timestamp).First().Number+1
         };
 
         Account.Transactions.Add(transaction);
-        Account.CurrentBalance += IsTransactionMode ? NewTransactionValue : NewTransactionValue - Account.CurrentBalance;
+        Account.CurrentBalance += IsTransactionMode ? double.Parse(NewTransactionValue) : double.Parse(NewTransactionValue) - Account.CurrentBalance;
         await Context.SaveChangesAsync();
 
         await ToggleTransactionCreation();
         NewTransactionDescription = string.Empty;
-        NewTransactionValue = 0;
+        NewTransactionValue = string.Empty;
         await JSRuntime.InvokeVoidAsync("UncheckElement", TransactionsCreationCheckboxReference);
 
         await AccountChanged.InvokeAsync(Account);

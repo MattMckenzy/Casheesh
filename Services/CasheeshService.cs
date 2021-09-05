@@ -41,16 +41,17 @@ namespace Casheesh.Services
                     {
                         if (DateTime.Now.Date >= (recurrence.LastApplied + recurrence.TimeSpan).Date)
                         {
+                            double recurrenceValue = recurrence.IsRate ? recurrence.Account.CurrentBalance * recurrence.Value : recurrence.Value;
                             context.Transactions.Add(new Transaction
                             {
                                 Number = !recurrence.Account.Transactions.Any() ? 1 : recurrence.Account.Transactions.OrderByDescending(transaction => transaction.Timestamp).First().Number + 1,
                                 AccountName = recurrence.AccountName,
-                                Value = recurrence.Value,
-                                Description = $"Recurring transaction: {recurrence.Name} - {recurrence.Description}",
+                                Value = recurrenceValue,
+                                Description = $"{(recurrence.IsRate ? "Applied rate" : "Recurring transaction")}: {recurrence.Name} - {recurrence.Description}",
                                 Timestamp = DateTime.Now
                             });
                             recurrence.LastApplied = DateTime.Now;
-                            recurrence.Account.CurrentBalance += recurrence.Value;
+                            recurrence.Account.CurrentBalance += recurrenceValue;
                         }
                     }
 

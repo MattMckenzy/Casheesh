@@ -48,12 +48,12 @@
     private ElementReference BalancesCreationCheckboxReference { get; set; }
     private ElementReference BalanceEditingContainerReference { get; set; }
 
-    private double NewBalanceValue { get; set; } = 0;
+    private string NewBalanceValue { get; set; } = string.Empty;
     private DateTime NewBalanceTimestamp { get; set; }
 
     protected override Task OnParametersSetAsync()
     {
-        NewBalanceValue = Balance.Value;
+        NewBalanceValue = Balance.Value.ToString();
         NewBalanceTimestamp = Balance.Timestamp;
 
         return base.OnParametersSetAsync();
@@ -78,7 +78,7 @@
         await ToggleBalanceEditing();
         await JSRuntime.InvokeVoidAsync("UncheckElement", BalancesCreationCheckboxReference);
 
-        Balance.Value = NewBalanceValue;
+        Balance.Value = double.Parse(NewBalanceValue);
         Balance.Timestamp = NewBalanceTimestamp;
         await Context.SaveChangesAsync();
 

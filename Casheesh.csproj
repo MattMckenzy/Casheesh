@@ -29,12 +29,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="casheesh.db">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="wwwroot\chart\" />
   </ItemGroup>
 

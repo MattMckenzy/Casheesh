@@ -48,12 +48,12 @@
     private ElementReference TransactionsCreationCheckboxReference { get; set; }
     private ElementReference TransactionEditingContainerReference { get; set; }
 
-    private double NewTransactionValue { get; set; } = 0;
+    private string NewTransactionValue { get; set; } = string.Empty;
     private string NewTransactionDescription { get; set; }
 
     protected override Task OnParametersSetAsync()
     {
-        NewTransactionValue = Transaction.Value;
+        NewTransactionValue = Transaction.Value.ToString();
         NewTransactionDescription = Transaction.Description;
 
         return base.OnParametersSetAsync();
@@ -78,7 +78,7 @@
         await ToggleTransactionEditing();
         await JSRuntime.InvokeVoidAsync("UncheckElement", TransactionsCreationCheckboxReference);
 
-        Transaction.Value = NewTransactionValue;
+        Transaction.Value = double.Parse(NewTransactionValue);
         Transaction.Description = NewTransactionDescription;
         Account.CurrentBalance += (Transaction.Value - ((Transaction)Context.Entry(Transaction).OriginalValues.ToObject()).Value);
         await Context.SaveChangesAsync();

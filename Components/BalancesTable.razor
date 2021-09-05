@@ -55,7 +55,7 @@
     private ElementReference BalancesCreationCheckboxReference { get; set; }
     private ElementReference BalanceCreationContainerReference { get; set; }
 
-    private double NewBalanceValue { get; set; } = 0;
+    private string NewBalanceValue { get; set; } = string.Empty;
     private DateTime NewBalanceTimestamp { get; set; } = DateTime.Now;
 
     private async Task ToggleBalanceCreation()
@@ -77,7 +77,7 @@
         Balance latestBalance = Account.Balances.OrderByDescending(balance => balance.Id).FirstOrDefault();
         Balance balance = new Balance
         {
-            Value = NewBalanceValue,
+            Value = double.Parse(NewBalanceValue),
             Id = !Account.Balances.Any() ? 1 : latestBalance.Id + 1,
             Timestamp = NewBalanceTimestamp
         };
@@ -87,7 +87,7 @@
 
         await ToggleBalanceCreation();
         NewBalanceTimestamp = DateTime.Now;
-        NewBalanceValue = 0;
+        NewBalanceValue = string.Empty;
         await JSRuntime.InvokeVoidAsync("UncheckElement", BalancesCreationCheckboxReference);
 
         await AccountChanged.InvokeAsync(Account);

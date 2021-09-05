@@ -9,7 +9,7 @@ namespace Casheesh.Migrations
             migrationBuilder.InsertData(
                 table: "Accounts",
                 columns: new[] { "Name", "CurrentBalance", "Order" },
-                values: new object[] { "Net Worth", 0.0, 0 });
+                values: new object[] { "Net Worth", 0.0, 1 });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

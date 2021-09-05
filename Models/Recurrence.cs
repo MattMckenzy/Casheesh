@@ -13,6 +13,7 @@ namespace Casheesh.Models
         public string Name { get; set; }
 
         public double Value { get; set; }
+        public bool IsRate { get; set; }
         public string Description { get; set; }
 
         public TimeSpan TimeSpan { get; set; }

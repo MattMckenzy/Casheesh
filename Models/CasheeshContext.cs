@@ -30,13 +30,8 @@ namespace Casheesh.Models
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            // Copy database to folder if it doesn't exist
-            FileInfo databaseSourceFileInfo = new("casheesh.db");
             Directory.CreateDirectory("/data");
             FileInfo databaseDestinationFileInfo = new("/data/casheesh.db");
-
-            if (!databaseDestinationFileInfo.Exists)
-                databaseSourceFileInfo.CopyTo(databaseDestinationFileInfo.FullName);
 
             optionsBuilder
                 .UseLazyLoadingProxies()

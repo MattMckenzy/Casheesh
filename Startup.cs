@@ -2,6 +2,7 @@ using Casheesh.Models;
 using Casheesh.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,8 +25,6 @@ namespace Casheesh
         {
             services.AddDbContext<CasheeshContext>();
 
-            services.AddHostedService<CasheeshService>();
-
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddControllers().AddNewtonsoftJson(options =>
@@ -35,8 +34,10 @@ namespace Casheesh
         }    
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, CasheeshContext casheeshContext)
         {
+            casheeshContext.Database.Migrate();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
