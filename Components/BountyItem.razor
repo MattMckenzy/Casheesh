@@ -68,19 +68,11 @@
     <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center justify-content-between">
         <div>
             <label class="text-stroke m-0 mr-2">Apply to account:</label>
-            <select class="name-input text-right m-0" @bind="ApplyingAccountName">
-                @{
-                    bool isFirst = true;
-                    foreach (Account account in Context.Accounts.Where(account => account.Name != "Net Worth").OrderBy(account => account.Name))
-                    {
-                        if (isFirst)
-                        {
-                            ApplyingAccountName = account.Name;
-                            isFirst = false;
-                        }
-                        <option value="@account.Name">@account.Name</option>                        
-                    }
-                }
+            <select class="name-input text-right m-0" @bind="ApplyingAccountName">                
+                @foreach (Account account in Context.Accounts.Where(account => account.Name != "Net Worth").OrderBy(account => account.Name))
+                {
+                    <option value="@account.Name">@account.Name</option>                        
+                }                
             </select>
         </div>
         <div>
@@ -119,6 +111,12 @@
     private ElementReference BountyEditingContainerReference { get; set; }
     private ElementReference BountiesApplyingCheckboxReference { get; set; }
     private ElementReference BountyApplyingContainerReference { get; set; }
+
+    protected override Task OnInitializedAsync()
+    {
+        ApplyingAccountName = Context.Accounts.Where(account => account.Name != "Net Worth").OrderBy(account => account.Name).FirstOrDefault()?.Name ?? string.Empty;
+        return base.OnInitializedAsync();
+    }
 
     protected override Task OnParametersSetAsync()
     {

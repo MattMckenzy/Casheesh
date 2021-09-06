@@ -16,37 +16,70 @@
         </div>
     </div>
 
-    <div @ref="AccountCreationContainerReference" class="hidden-container d-flex flex-row bd-highlight align-items-center overflow-hidden justify-content-end mb-3 mr-2">
-        <i class="button-bright button-label-36 mdi mdi-bank-plus mdi-36px m-0 mr-2"></i>
-        <label class="text-stroke m-0 mr-2">Name:</label>
-        <input @bind="NewAccountName" class="@(IsNewAccountNameValid ? "input-valid" : "input-invalid") input-name m-0 mr-2" id="AccountName" aria-describedby="AccountNameFeedback" @oninput="NewAccountNameChanged" required />
-        <i class="button-bright @(IsNewAccountNameValid ? string.Empty : "button-disabled") mdi mdi-content-save icon-responsive m-0" @onclick="CreateAccount"></i>
+    <div @ref="AccountCreationContainerReference" class="hidden-container overflow-hidden">
+        <div class="d-flex flex-row bd-highlight align-items-center justify-content-end mb-3 mr-2">
+            <i class="button-bright button-label-36 mdi mdi-piggy-bank mdi-36px m-0 mr-2"></i>
+            <label class="text-stroke m-0 mr-2">Net worth card:</label>
+            <input @bind="EnableNetWorthCard" class="m-0 mr-2" type="checkbox" id="NetWorthCardCheckbox" />
+        </div>
+        <div class="d-flex flex-row bd-highlight align-items-center justify-content-end mb-3 mr-2">
+            <i class="button-bright button-label-36 mdi mdi-chart-line mdi-36px m-0 mr-2"></i>
+            <label class="text-stroke m-0 mr-2">Chart card:</label>
+            <input @bind="EnableChartCard" class="m-0 mr-2" type="checkbox" id="ChartCardCheckbox" />
+        </div>
+        <div class="d-flex flex-row bd-highlight align-items-center justify-content-end mb-3 mr-2">
+            <i class="button-bright button-label-36 mdi mdi-cash-multiple mdi-36px m-0 mr-2"></i>
+            <label class="text-stroke m-0 mr-2">Bounties card:</label>
+            <input @bind="EnableBountiesCard" class="m-0 mr-2" type="checkbox" id="NetWorthCardCheckbox" />
+        </div>
+        <div class="d-flex flex-row bd-highlight align-items-center justify-content-end mb-3 mr-2">
+            <i class="button-bright button-label-36 mdi mdi-bank-plus mdi-36px m-0 mr-2"></i>
+            <label class="text-stroke m-0 mr-2">Name:</label>
+            <input @bind="NewAccountName" class="@(IsNewAccountNameValid ? "input-valid" : "input-invalid") input-name m-0 mr-2" id="AccountName" aria-describedby="AccountNameFeedback" @oninput="NewAccountNameChanged" required />
+            <i class="button-bright @(IsNewAccountNameValid ? string.Empty : "button-disabled") mdi mdi-content-save icon-responsive m-0" @onclick="CreateAccount"></i>
+        </div>
     </div>
 
     <div class="d-flex flex-wrap m-0 justify-content-center">
         @foreach (Account account in Context.Accounts.OrderBy(account => account.Order))
         {
-            <AccountCard Account="account" @ref="AccountCardReference" AccountChangedCallback="RefreshBalance" AccountOrderChangedCallback="ChangeAccountOrder" IsEditing="IsEditing" />
+            if (account.Name != "Net Worth" || EnableNetWorthCard)
+            {
+                <AccountCard Account="account" @ref="AccountCardReference" AccountChangedCallback="RefreshBalance" AccountOrderChangedCallback="ChangeAccountOrder" IsEditing="IsEditing" />
+            }
         }
 
-        <div class="card card-worth-graph bg-dark text-white m-3">
-            <div class="d-flex flex-row justify-content-between p-3">
-                <div class="d-flex flex-row align-items-center">
-                    <h4 class="card-title text-stroke m-0">Net Worth by Date</h4>
+        @if (EnableChartCard)
+        {
+            <div class="card card-worth-graph bg-dark text-white m-3">
+                <div class="d-flex flex-row justify-content-between p-3">
+                    <div class="d-flex flex-row align-items-center">
+                        <h4 class="card-title text-stroke m-0">Net Worth by Date</h4>
+                    </div>
+                    <i class="button-label mdi mdi-chart-line"></i>
                 </div>
-                <i class="button-label mdi mdi-chart-line"></i>
+                <div class="p-3 w-100 h-100">
+                    <Chart @ref="Chart" Config="LineConfig"></Chart>
+                </div>
             </div>
-            <div class="p-3 w-100 h-100">
-                <Chart @ref="Chart" Config="LineConfig"></Chart>
-            </div>
-        </div>
+        }
 
-        <BountiesCard AccountChangedCallback="RefreshAccountBalance" />
+        @if (EnableBountiesCard)
+        {
+            <BountiesCard AccountChangedCallback="RefreshAccountBalance" />
+        }
     </div>
 </div>
 
 @code
 {
+    private bool enableNetWorthCard;
+    private bool EnableNetWorthCard { get { return enableNetWorthCard; } set { enableNetWorthCard = value; UpdateSettings(); } }
+    private bool enableChartCard;
+    private bool EnableChartCard { get { return enableChartCard; } set { enableChartCard = value; UpdateSettings(); } }
+    private bool enableBountiesCard;
+    private bool EnableBountiesCard { get { return enableBountiesCard; } set { enableBountiesCard = value; UpdateSettings(); } }
+
     private string NewAccountName { get; set; }
     private bool IsNewAccountNameValid { get; set; } = false;
 
@@ -59,6 +92,8 @@
 
     private Chart Chart;
     private LineConfig LineConfig;
+
+    private FileInfo SettingsFile;
 
     private string[] colors =
     {
@@ -76,6 +111,20 @@
 
     protected async override Task OnInitializedAsync()
     {
+        DirectoryInfo settingsFolder = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData, Environment.SpecialFolderOption.Create), "MattWare", "Casheesh"));
+        Directory.CreateDirectory(settingsFolder.FullName);
+        SettingsFile = new FileInfo(Path.Combine(settingsFolder.FullName, "settings.json"));
+
+        if (!SettingsFile.Exists)
+        {
+            EnableNetWorthCard = true;
+            EnableChartCard = true;
+            EnableBountiesCard = true;
+            UpdateSettings();
+        }
+
+        (EnableNetWorthCard, EnableChartCard, EnableBountiesCard) = JsonConvert.DeserializeObject<(bool, bool, bool)>(await File.ReadAllTextAsync(SettingsFile.FullName));
+
         LineConfig = new LineConfig
         {
             Options = new LineOptions
@@ -95,7 +144,7 @@
                 Scales = new Scales
                 {
                     XAxes = new List<CartesianAxis>
-                {
+            {
                         new TimeAxis
                         {
                             ScaleLabel = new ScaleLabel
@@ -115,9 +164,9 @@
                                 Color = "#6c757d"
                             }
                         }
-                },
+            },
                     YAxes = new List<CartesianAxis>
-                {
+            {
                         new LinearCartesianAxis
                         {
                             ScaleLabel = new ScaleLabel
@@ -134,7 +183,7 @@
                                 Color = "#6c757d"
                             }
                         }
-                }
+            }
                 },
                 Legend = new Legend
                 {
@@ -160,11 +209,16 @@
         await RefreshBalance();
     }
 
+    private void UpdateSettings()
+    {
+        File.WriteAllText(SettingsFile.FullName, JsonConvert.SerializeObject((EnableNetWorthCard, EnableChartCard, EnableBountiesCard)));
+    }
+
     private async Task ToggleEditMode()
     {
         if (!IsEditing)
         {
-            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCreationContainerReference, 38);
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCreationContainerReference, 190);
             IsEditing = true;
         }
         else
