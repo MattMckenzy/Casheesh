@@ -110,21 +110,7 @@
     };
 
     protected async override Task OnInitializedAsync()
-    {
-        DirectoryInfo settingsFolder = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData, Environment.SpecialFolderOption.Create), "MattWare", "Casheesh"));
-        Directory.CreateDirectory(settingsFolder.FullName);
-        SettingsFile = new FileInfo(Path.Combine(settingsFolder.FullName, "settings.json"));
-
-        if (!SettingsFile.Exists)
-        {
-            EnableNetWorthCard = true;
-            EnableChartCard = true;
-            EnableBountiesCard = true;
-            UpdateSettings();
-        }
-
-        (EnableNetWorthCard, EnableChartCard, EnableBountiesCard) = JsonConvert.DeserializeObject<(bool, bool, bool)>(await File.ReadAllTextAsync(SettingsFile.FullName));
-
+    {       
         LineConfig = new LineConfig
         {
             Options = new LineOptions
@@ -194,6 +180,19 @@
                 }
             },
         };
+
+        Directory.CreateDirectory("/data");
+        SettingsFile = new FileInfo(Path.Combine("/data", "settings.json"));
+
+        if (!SettingsFile.Exists)
+        {
+            EnableNetWorthCard = true;
+            EnableChartCard = true;
+            EnableBountiesCard = true;
+            UpdateSettings();
+        }
+
+        (EnableNetWorthCard, EnableChartCard, EnableBountiesCard) = JsonConvert.DeserializeObject<(bool, bool, bool)>(File.ReadAllText(SettingsFile.FullName));
 
         foreach (Account account in Context.Accounts)
         {
