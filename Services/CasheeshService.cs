@@ -37,6 +37,16 @@ namespace Casheesh.Services
                     using IServiceScope scope = _scopeFactory.CreateScope();
                     CasheeshContext context = scope.ServiceProvider.GetRequiredService<CasheeshContext>();
 
+                    foreach (Bounty bounty in context.Bounties)
+                    {
+                        if (DateTime.Now.Date >= (bounty.LastApplied + bounty.TimeSpan).Date)
+                        {
+                            double bountyIncrement = bounty.IsRate ? bounty.Value * bounty.IncrementValue : bounty.IncrementValue;
+                            bounty.Value = Math.Min(bounty.Value + bountyIncrement, bounty.MaxValue);
+                            bounty.LastApplied = DateTime.Now;
+                        }
+                    }
+
                     foreach (Recurrence recurrence in context.Recurrences)
                     {
                         if (DateTime.Now.Date >= (recurrence.LastApplied + recurrence.TimeSpan).Date)

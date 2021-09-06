@@ -3,14 +3,16 @@ using System;
 using Casheesh.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Casheesh.Migrations
 {
     [DbContext(typeof(CasheeshContext))]
-    partial class CasheeshContextModelSnapshot : ModelSnapshot
+    [Migration("20210905175945_AddedBounties")]
+    partial class AddedBounties
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -86,9 +88,6 @@ namespace Casheesh.Migrations
 
                     b.Property<TimeSpan>("TimeSpan")
                         .HasColumnType("TEXT");
-
-                    b.Property<double>("Value")
-                        .HasColumnType("REAL");
 
                     b.HasKey("Name");
 

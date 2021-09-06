@@ -9,6 +9,7 @@ namespace Casheesh.Models
         public DbSet<Balance> Balances { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<Recurrence> Recurrences { get; set; }
+        public DbSet<Bounty> Bounties { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

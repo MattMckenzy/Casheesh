@@ -1,0 +1,227 @@
+﻿@inject IJSRuntime JSRuntime
+@inject CasheeshContext Context
+
+<div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center justify-content-between">
+    <div class="d-flex flex-row align-items-center">
+        @if (Context.Accounts.Any())
+        {
+            <div class="col-auto p-0 m-0 mr-2 button-container">
+                <input @ref="BountiesApplyingCheckboxReference" class="invisible-toggle" type="checkbox" id="BountyApplyingToggle@(Bounty.Name)" />
+                <label class="button-label m-0" for="BountyApplyingToggle@(Bounty.Name)">
+                    <i class="button-bright button-subtle position-absolute open-button mdi mdi-cash-plus icon-responsive" @onclick="ToggleBountyApplying"></i>
+                    <i class="button-bright button-subtle position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleBountyApplying"></i>
+                </label>
+            </div>
+        }
+        <div class="col-auto p-0 m-0 mr-2 button-container">
+            <input @ref="BountiesEditingCheckboxReference" class="invisible-toggle" type="checkbox" id="BountyEditingToggle@(Bounty.Name)" />
+            <label class="button-label m-0" for="BountyEditingToggle@(Bounty.Name)">
+                <i class="button-bright button-subtle position-absolute open-button mdi mdi-pencil icon-responsive" @onclick="ToggleBountyEditing"></i>
+                <i class="button-bright button-subtle position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleBountyEditing"></i>
+            </label>
+        </div>
+        <div class="text-stroke mr-3">@($"{Bounty.Name} - {Bounty.Description}")</div>
+    </div>
+    <div class="text-stroke text-right color-teal">@(Bounty.Value.ToString("C", CultureInfo.GetCultureInfo("en-CA")))</div>
+</div>
+<div @ref="BountyEditingContainerReference" class="hidden-container bd-highlight overflow-hidden">
+    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 mb-2">
+        <label class="text-stroke m-0 mr-2">Description:</label>
+        <input @bind="BountyDescription" class="name-input m-0 w-100" Name="NewBountyDescription" />
+    </div>
+    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 mb-2">
+        <label class="text-stroke m-0 mr-2">Current value:</label>
+        <input @bind="BountyValue" class="name-input text-right m-0" type="number" step="0.01" style="width:100px;" Name="BountyValue" />
+    </div>
+    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 mb-2">
+        <label class="text-stroke m-0 mr-2">Base value:</label>
+        <input @bind="BountyBaseValue" class="name-input text-right m-0" type="number" step="0.01" style="width:100px;" Name="BountyBaseValue" />
+    </div>
+    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 mb-2">
+        <label class="text-stroke m-0 mr-2">Max value:</label>
+        <input @bind="BountyMaxValue" class="name-input text-right m-0" type="number" step="0.01" style="width:100px;" Name="BountyMaxValue" />
+    </div>
+    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 mb-2">
+        <label class="text-stroke m-0 mr-2">Increment value:</label>
+        <input @bind="BountyIncrementValue" class="name-input text-right m-0" type="number" step="0.01" style="width:100px;" Name="BountyIncrementValue" />
+    </div>
+    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 mb-2">
+        <label class="text-stroke m-0 mr-2">Next increment date:</label>
+        <input @bind="BountyNextIncrementDate" class="name-input text-right m-0" type="date" step="1" Name="BountyNextIncrementDate" />
+    </div>
+    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 mb-2">
+        <label class="text-stroke m-0 mr-2">Days between increments:</label>
+        <input @bind="BountyIncrementRecurrenceDays" class="name-input text-right m-0" type="number" step="1" min="1" style="width:52px;" Name="BountyIncrementRecurrenceDays" />
+    </div>
+    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center justify-content-between">
+        <div>
+            <label class="text-stroke m-0 mr-2">Is Rate:</label>
+            <input @bind="BountyIncrementIsRate" class="name-input text-right m-0" type="checkbox" Name="BountyIncrementIsRate" />
+        </div>
+        <div>
+            <i class="button-bright mdi mdi-content-save icon-responsive m-0" @onclick="EditBounty"></i>
+            <i class="button-bright color-red float-right mdi mdi-delete icon-responsive p-0 m-0 mr-1" @onclick="DeleteBounty"></i>
+        </div>
+    </div>
+</div>
+<div @ref="BountyApplyingContainerReference" class="hidden-container bd-highlight overflow-hidden">
+    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center justify-content-between">
+        <div>
+            <label class="text-stroke m-0 mr-2">Apply to account:</label>
+            <select class="name-input text-right m-0" @bind="ApplyingAccountName">
+                @{
+                    bool isFirst = true;
+                    foreach (Account account in Context.Accounts.Where(account => account.Name != "Net Worth").OrderBy(account => account.Name))
+                    {
+                        if (isFirst)
+                        {
+                            ApplyingAccountName = account.Name;
+                            isFirst = false;
+                        }
+                        <option value="@account.Name">@account.Name</option>                        
+                    }
+                }
+            </select>
+        </div>
+        <div>
+            <i class="button-bright mdi mdi-content-save icon-responsive m-0" @onclick="ApplyBounty"></i>
+        </div>
+    </div>
+</div>
+@code {
+
+    [Parameter]
+    public Bounty Bounty { get; set; }
+    [Parameter]
+    public EventCallback<Bounty> BountyChanged { get; set; }
+
+    [Parameter]
+    public EventCallback AccountChangedCallback { get; set; }
+
+    [Parameter]
+    public EventCallback BountiesChangedCallback { get; set; }
+
+    private string BountyDescription { get; set; } = string.Empty;
+    private string BountyValue { get; set; } = string.Empty;
+    private string BountyBaseValue { get; set; } = string.Empty;
+    private string BountyMaxValue { get; set; } = string.Empty;
+    private string BountyIncrementValue { get; set; } = string.Empty;
+    private DateTime BountyNextIncrementDate { get; set; } = DateTime.Now + TimeSpan.FromDays(1);
+    private string BountyIncrementRecurrenceDays { get; set; } = string.Empty;
+    private bool BountyIncrementIsRate { get; set; } = false;
+
+    private bool IsShowingBountyEditing { get; set; } = false;
+    private bool IsShowingBountyApplying { get; set; } = false;
+
+    private string ApplyingAccountName { get; set; } = string.Empty;
+
+    private ElementReference BountiesEditingCheckboxReference { get; set; }
+    private ElementReference BountyEditingContainerReference { get; set; }
+    private ElementReference BountiesApplyingCheckboxReference { get; set; }
+    private ElementReference BountyApplyingContainerReference { get; set; }
+
+    protected override Task OnParametersSetAsync()
+    {
+        BountyDescription = Bounty.Description;
+        BountyValue = Bounty.Value.ToString();
+        BountyBaseValue = Bounty.BaseValue.ToString();
+        BountyMaxValue = Bounty.MaxValue.ToString();
+        BountyIncrementValue = Bounty.IncrementValue.ToString();
+        BountyNextIncrementDate = Bounty.LastApplied + TimeSpan.FromDays(int.Parse(string.IsNullOrWhiteSpace(BountyIncrementRecurrenceDays) ? "0" : BountyIncrementRecurrenceDays));
+        BountyIncrementRecurrenceDays = Bounty.TimeSpan.Days.ToString();
+        BountyIncrementIsRate = Bounty.IsRate;
+
+        return base.OnParametersSetAsync();
+    }
+
+    private async Task ToggleBountyEditing()
+    {
+        if (!IsShowingBountyEditing)
+        {
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", BountyEditingContainerReference, 300);
+            IsShowingBountyEditing = true;
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", BountyEditingContainerReference, 0);
+            IsShowingBountyEditing = false;
+        }
+    }
+
+    private async Task ToggleBountyApplying()
+    {
+        if (!IsShowingBountyApplying)
+        {
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", BountyApplyingContainerReference, 30);
+            IsShowingBountyApplying = true;
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", BountyApplyingContainerReference, 0);
+            IsShowingBountyApplying = false;
+        }
+    }
+
+    private async Task EditBounty()
+    {
+        await ToggleBountyEditing();
+        await JSRuntime.InvokeVoidAsync("UncheckElement", BountiesEditingCheckboxReference);
+
+        Bounty.Description = BountyDescription;
+        Bounty.Value = double.Parse(BountyValue);
+        Bounty.BaseValue = double.Parse(BountyBaseValue);
+        Bounty.MaxValue = double.Parse(BountyMaxValue);
+        Bounty.IncrementValue = double.Parse(BountyIncrementValue);
+        Bounty.LastApplied = BountyNextIncrementDate - TimeSpan.FromDays(int.Parse(BountyIncrementRecurrenceDays));
+        Bounty.TimeSpan = TimeSpan.FromDays(int.Parse(BountyIncrementRecurrenceDays));
+        Bounty.IsRate = BountyIncrementIsRate;
+
+        await Context.SaveChangesAsync();
+
+        await BountyChanged.InvokeAsync();
+        await BountiesChangedCallback.InvokeAsync();
+    }
+
+    private async Task DeleteBounty()
+    {
+        bool isDeletingBounty = await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure wou wish to delete the bounty: \"{Bounty.Name} - {Bounty.Description} \"?");
+        if (isDeletingBounty)
+        {
+            await ToggleBountyEditing();
+            await JSRuntime.InvokeVoidAsync("UncheckElement", BountiesEditingCheckboxReference);
+
+            Context.Bounties.Remove(Bounty);
+            await Context.SaveChangesAsync();
+
+            await BountyChanged.InvokeAsync();
+            await BountiesChangedCallback.InvokeAsync();
+        }
+    }
+
+    private async Task ApplyBounty()
+    {
+        await JSRuntime.InvokeAsync<bool>("confirm", $"Bounty \"{Bounty.Name}\" claimed on account \"{ApplyingAccountName}\"!");
+
+        await ToggleBountyApplying();
+        await JSRuntime.InvokeVoidAsync("UncheckElement", BountiesApplyingCheckboxReference);
+
+        Account applyingAccount = await Context.FindAsync<Account>(ApplyingAccountName);
+        applyingAccount.Transactions.Add(new Transaction
+        {
+            Description = $"Claimed Bounty: {Bounty.Name}",
+            Value = Bounty.Value,
+            AccountName = ApplyingAccountName,
+            Timestamp = DateTime.Now,
+            Number = !applyingAccount.Transactions.Any() ? 1 : applyingAccount.Transactions.OrderByDescending(transaction => transaction.Timestamp).First().Number + 1
+        });
+        applyingAccount.CurrentBalance += Bounty.Value;
+        Bounty.Value = Bounty.BaseValue;
+        Bounty.LastApplied = DateTime.Now;
+
+        await Context.SaveChangesAsync();
+
+        await AccountChangedCallback.InvokeAsync();
+        await BountyChanged.InvokeAsync();
+        await BountiesChangedCallback.InvokeAsync();
+    }
+}

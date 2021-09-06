@@ -38,8 +38,10 @@
             </div>
             <div class="p-3 w-100 h-100">
                 <Chart @ref="Chart" Config="LineConfig"></Chart>
-            </div>            
+            </div>
         </div>
+
+        <BountiesCard AccountChangedCallback="RefreshAccountBalance" />
     </div>
 </div>
 
@@ -54,8 +56,6 @@
 
     private List<AccountCard> AccountCardReferences = new();
     private AccountCard AccountCardReference { set => AccountCardReferences.Add(value); }
-
-    private double NetWorth = 0;
 
     private Chart Chart;
     private LineConfig LineConfig;
@@ -212,7 +212,12 @@
     {
         AccountCard netWorthCard = AccountCardReferences.FirstOrDefault(accountCard => accountCard.Account.Name == "Net Worth");
         if (netWorthCard != null)
-            await netWorthCard.UpdateNetWorth();        
+            await netWorthCard.UpdateNetWorth();
+    }
+
+    private async Task RefreshAccountBalance()
+    {
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task ChangeAccountOrder((string AccountName, bool moveUp) newAccountOrder)

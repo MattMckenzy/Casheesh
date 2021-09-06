@@ -1,0 +1,75 @@
+﻿@inject IJSRuntime JSRuntime
+@inject CasheeshContext Context
+
+<div @ref="BountiesCardReference" class="card bg-dark text-white m-3">
+    <div class="d-flex flex-row justify-content-between align-items-center">
+        <h4 class="card-title text-stroke p-3 m-0">Bounties</h4>
+    </div>
+
+    <div class="row m-0 w-100 align-items-center">
+        <div class="col-auto mx-3 mb-3 p-0 button-container button-container">
+            <input class="invisible-toggle" type="checkbox" id="BountiesToggle" />
+            <label class="button-label m-0" for="BountiesToggle">
+                <i class="button-bright position-absolute open-button mdi mdi-cash-multiple icon-responsive" @onclick="ToggleBounties"></i>
+                <i class="button-bright position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleBounties"></i>
+            </label>
+        </div>
+        @if (MaxBounty != null)
+        {
+            Bounty maxBounty = Context.Bounties.OrderByDescending(bounty => bounty.Value).First();
+            <h3 class="col card-text text-stroke px-3 pb-3 m-0 text-right color-teal"Co>@maxBounty.Name: @maxBounty.Value.ToString("C", CultureInfo.GetCultureInfo("en-CA"))</h3>
+        }
+    </div>
+
+    @if (IsShowingBounties)
+    {
+        <div @ref="BountiesContainerReference" class="card-container bg-dark overflow-auto w-100">
+            <BountiesTable AccountChangedCallback="AccountChangedCallback" BountiesChangedCallback="RefreshMaxBounty" />
+        </div>
+    }
+
+</div>
+
+@code {
+
+    [Parameter]
+    public EventCallback AccountChangedCallback { get; set; }
+
+    [Parameter]
+    public ElementReference BountiesCardReference { get; set; }
+
+    private ElementReference BountiesContainerReference { get; set; }
+
+    private bool IsShowingBounties { get; set; } = false;
+
+    private Bounty MaxBounty { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshMaxBounty();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task ToggleBounties(MouseEventArgs _)
+    {
+        if (!IsShowingBounties)
+        {
+            IsShowingBounties = true;
+            await InvokeAsync(StateHasChanged);
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", BountiesCardReference, 600);
+            await JSRuntime.InvokeVoidAsync("CardContainerExpand", BountiesContainerReference);
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("CardContainerShrink", BountiesContainerReference);
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", BountiesCardReference, 106);
+            IsShowingBounties = false;
+        }
+    }
+
+    private Task RefreshMaxBounty()
+    {
+        MaxBounty = Context.Bounties.Any() ? Context.Bounties.OrderByDescending(bounty => bounty.Value).First() : null;
+        return Task.CompletedTask;
+    }
+}

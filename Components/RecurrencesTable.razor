@@ -20,6 +20,10 @@
     <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 mb-2">
         <label class="text-stroke m-0 mr-2">Description:</label>
         <input @bind="NewRecurrenceDescription" class="name-input m-0 w-100" Name="NewRecurrenceDescription" />
+    </div>        
+    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 mb-2">
+        <label class="text-stroke m-0 mr-2">Value:</label>
+        <input @bind="NewRecurrenceValue" class="name-input text-right m-0" type="number" step="0.01" style="width:100px;" Name="NewRecurrenceValue" />
     </div>
     <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 mb-2">
         <label class="text-stroke m-0 mr-2">First date:</label>
@@ -28,15 +32,12 @@
     <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 mb-2">
         <label class="text-stroke m-0 mr-2">Days between:</label>
         <input @bind="NewRecurrenceDays" class="name-input text-right m-0" type="number" step="1" min="1" style="width:52px;" Name="NewRecurrenceDays" />
-    </div>    
-    <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 mb-2">
-        <label class="text-stroke m-0 mr-2">Is Rate:</label>
-        <input @bind="NewRecurrenceIsRate" class="name-input text-right m-0" type="checkbox" Name="NewRecurrenceIsRate" />
     </div>
+
     <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center justify-content-between mx-3 mb-3">
         <div>
-            <label class="text-stroke m-0 mr-2">Value:</label>
-            <input @bind="NewRecurrenceValue" class="name-input text-right m-0" type="number" step="0.01" style="width:100px;" Name="NewRecurrenceValue" />
+            <label class="text-stroke m-0 mr-2">Is Rate:</label>
+            <input @bind="NewRecurrenceIsRate" class="name-input text-right m-0" type="checkbox" Name="NewRecurrenceIsRate" />
         </div>
         <i class="button-bright mdi @(IsNewRecurrenceNameValid ? string.Empty : "button-disabled") mdi-content-save icon-responsive m-0" @onclick="CreateRecurrence"></i>
     </div>
