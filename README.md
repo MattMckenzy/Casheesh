@@ -14,7 +14,7 @@ All configuration is done via the web app by clicking on the pencil icon in the 
 
 You can self-host it on any server, as it is cross-platform, but I designed it with Docker in mind. See below for an example Docker configuration.
 
-As an alternative, I've added a "Release" folder at root that contains the published website. You can use this to host the website directly on any server or system without the use of Docker. You can configure the contained "Casheesh.bat" file to modify the port or culture that Casheesh will use.
+As an alternative, I've added a "Release" folder at root that contains the published website. You can use this to host the website directly on any server or system without the use of Docker. You can configure the contained "Casheesh.bat" file to modify the port or culture that Casheesh will use. Make sure you also install .NET 5.0 runtime, it's necessary to have it work! You can find it here: https://dotnet.microsoft.com/download.
 
 # Docker
 
