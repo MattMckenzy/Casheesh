@@ -20,7 +20,7 @@ As an alternative, I've added a "Release" folder at root that contains the publi
 
 If you wish to install Casheesh via docker, here are example configuration files.
 
-The below file is the docker-compose file I use, including the port on which I host Casheesh as well as the culture locale Casheesh uses for currency format.
+The below file is the docker-compose file I use, including the port on which I host Casheesh as well as the culture locale Casheesh uses for currency formatting.
 
 ## docker-compose.yaml
 ```yaml
