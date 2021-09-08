@@ -6,6 +6,10 @@ Simple, self-hosted budgeting web app.
 
 This application will provide a simple, mobile-friendly means to keep track of any number of cash accounts. It supports automatic-reccurring transactions, net worth, balance history, balance history chart and claimable bounties.
 
+The idea is to create seperate cash accounts for each category of spending you want to budget. No dealing with setting a category for each transaction and you can quickly see how much money you have left to spend in each account. 
+
+You can also use cash accounts to keep track of Net Worth by adding any non-budgeting accounts as well.
+
 All configuration is done via the web app by clicking on the pencil icon in the top-right.
 
 ![Casheesh home page](Resources/Casheesh.png)
