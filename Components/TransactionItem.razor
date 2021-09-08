@@ -12,7 +12,7 @@
         </div>
         <div class="text-stroke mr-3">@($"{Transaction.Number}. {Transaction.Timestamp.ToShortDateString()} - {Transaction.Description}")</div>
     </div>
-    <div class="text-stroke text-right @(Transaction.Value >= 0 ? "color-teal" : Transaction.Value <= 0 ? "color-red" : string.Empty)">@(Transaction.Value.ToString("C", CultureInfo.GetCultureInfo("en-CA")))</div>
+    <div class="text-stroke text-right @(Transaction.Value >= 0 ? "color-teal" : Transaction.Value <= 0 ? "color-red" : string.Empty)">@(Transaction.Value.ToString("C", CultureInfo.GetCultureInfo(Environment.GetEnvironmentVariable("CULTURE"))))</div>
 </div>
 <div @ref="TransactionEditingContainerReference" class="hidden-container bd-highlight overflow-hidden">
     <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center my-2 mr-1">

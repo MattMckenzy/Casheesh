@@ -12,7 +12,7 @@
         </div>
         <div class="text-stroke mr-3">@($"In {Math.Round((Recurrence.LastApplied + Recurrence.TimeSpan - DateTime.Now).TotalDays, MidpointRounding.ToPositiveInfinity)} days: {Recurrence.Name} - {Recurrence.Description}")</div>
     </div>
-    <div class="text-stroke text-right @(Recurrence.Value >= 0 ? "color-teal" : Recurrence.Value <= 0 ? "color-red" : string.Empty)">@(Recurrence.Value.ToString(Recurrence.IsRate ? "P" : "C", CultureInfo.GetCultureInfo("en-CA")))</div>
+    <div class="text-stroke text-right @(Recurrence.Value >= 0 ? "color-teal" : Recurrence.Value <= 0 ? "color-red" : string.Empty)">@(Recurrence.Value.ToString(Recurrence.IsRate ? "P" : "C", CultureInfo.GetCultureInfo(Environment.GetEnvironmentVariable("CULTURE"))))</div>
 </div>
 <div @ref="RecurrenceEditingContainerReference" class="hidden-container bd-highlight overflow-hidden">
     <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center my-2 mr-1">

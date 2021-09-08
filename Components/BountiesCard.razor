@@ -17,7 +17,7 @@
         @if (MaxBounty != null)
         {
             Bounty maxBounty = Context.Bounties.OrderByDescending(bounty => bounty.Value).First();
-            <h3 class="col card-text text-stroke px-3 pb-3 m-0 text-right color-teal"Co>@maxBounty.Name: @maxBounty.Value.ToString("C", CultureInfo.GetCultureInfo("en-CA"))</h3>
+            <h3 class="col card-text text-stroke px-3 pb-3 m-0 text-right color-teal"Co>@maxBounty.Name: @maxBounty.Value.ToString("C", CultureInfo.GetCultureInfo(Environment.GetEnvironmentVariable("CULTURE")))</h3>
         }
     </div>
 

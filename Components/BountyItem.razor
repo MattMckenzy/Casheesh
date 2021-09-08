@@ -8,7 +8,7 @@
             <div class="col-auto p-0 m-0 mr-2 button-container">
                 <input @ref="BountiesApplyingCheckboxReference" class="invisible-toggle" type="checkbox" id="BountyApplyingToggle@(Bounty.Name)" />
                 <label class="button-label m-0" for="BountyApplyingToggle@(Bounty.Name)">
-                    <i class="button-bright button-subtle position-absolute open-button mdi mdi-cash-plus icon-responsive" @onclick="ToggleBountyApplying"></i>
+                    <i class="button-bright button-subtle position-absolute open-button mdi mdi-account-cash icon-responsive" @onclick="ToggleBountyApplying"></i>
                     <i class="button-bright button-subtle position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleBountyApplying"></i>
                 </label>
             </div>
@@ -22,7 +22,7 @@
         </div>
         <div class="text-stroke mr-3">@($"{Bounty.Name} - {Bounty.Description}")</div>
     </div>
-    <div class="text-stroke text-right color-teal">@(Bounty.Value.ToString("C", CultureInfo.GetCultureInfo("en-CA")))</div>
+    <div class="text-stroke text-right color-teal">@(Bounty.Value.ToString("C", CultureInfo.GetCultureInfo(Environment.GetEnvironmentVariable("CULTURE"))))</div>
 </div>
 <div @ref="BountyEditingContainerReference" class="hidden-container bd-highlight overflow-hidden">
     <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 mb-2">
@@ -66,18 +66,13 @@
 </div>
 <div @ref="BountyApplyingContainerReference" class="hidden-container bd-highlight overflow-hidden">
     <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center justify-content-between">
-        <div>
-            <label class="text-stroke m-0 mr-2">Apply to account:</label>
-            <select class="name-input text-right m-0" @bind="ApplyingAccountName">                
-                @foreach (Account account in Context.Accounts.Where(account => account.Name != "Net Worth").OrderBy(account => account.Name))
-                {
-                    <option value="@account.Name">@account.Name</option>                        
-                }                
-            </select>
-        </div>
-        <div>
-            <i class="button-bright mdi mdi-content-save icon-responsive m-0" @onclick="ApplyBounty"></i>
-        </div>
+        <select class="name-input text-right dropdown-account m-0" @bind="ApplyingAccountName">                
+            @foreach (Account account in Context.Accounts.Where(account => account.Name != "Net Worth").OrderBy(account => account.Name))
+            {
+                <option value="@account.Name">@account.Name</option>                        
+            }                
+        </select>
+        <i class="button-bright mdi mdi-cash-plus icon-responsive m-0" @onclick="ApplyBounty"></i>
     </div>
 </div>
 @code {

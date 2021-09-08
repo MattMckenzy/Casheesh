@@ -28,6 +28,9 @@
       "commandName": "Docker",
       "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "environmentVariables": {
+        "CULTURE": "zh-CN"
+      },
       "publishAllPorts": true
     }
   }

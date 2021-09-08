@@ -12,12 +12,15 @@ All configuration is done via the web app by clicking on the pencil icon in the 
 
 ## Installation
 
-You can self-host it on any server, as it is cross-platform, but I designed it with Docker in mind. See below for my setup.
+You can self-host it on any server, as it is cross-platform, but I designed it with Docker in mind. See below for an example Docker configuration.
 
+As an alternative, I've added a "Release" folder at root that contains the published website. You can use this to host the website directly on any server or system without the use of Docker. You can configure the contained "Casheesh.bat" file to modify the port or culture that Casheesh will use.
 
 # Docker
 
-If you wish to install Casheesh via docker, here's how I configure my installation :
+If you wish to install Casheesh via docker, here are example configuration files.
+
+The below file is the docker-compose file I use, including the port on which I host Casheesh as well as the culture locale Casheesh uses for currency format.
 
 ## docker-compose.yaml
 ```yaml
@@ -35,6 +38,7 @@ services:
       - PGID=982
       - TZ=America/Toronto
       - ASPNETCORE_URLS=http://+:8223
+      - CULTURE=en-CA
     volumes:
       - data:/data
       - /etc/localtime:/etc/localtime:ro
@@ -47,7 +51,9 @@ networks:
       name: home-net
 ```
 
-## casheesh.subdomain.conf (nginx reverse proxy configuration, with docker bridge gateway)
+The following file is my configuration for nginx. I serve Casheesh through it as a reverse proxy and use nginx to limit only local network connections to it. This is not necessary if you're not using a reverse proxy.
+
+## casheesh.subdomain.conf (nginx reverse proxy configuration)
 ```nginx
 server {
     listen 443 ssl;

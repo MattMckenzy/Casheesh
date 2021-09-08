@@ -110,7 +110,7 @@
     };
 
     protected async override Task OnInitializedAsync()
-    {       
+    {
         LineConfig = new LineConfig
         {
             Options = new LineOptions
@@ -130,7 +130,7 @@
                 Scales = new Scales
                 {
                     XAxes = new List<CartesianAxis>
-            {
+                    {
                         new TimeAxis
                         {
                             ScaleLabel = new ScaleLabel
@@ -150,9 +150,9 @@
                                 Color = "#6c757d"
                             }
                         }
-            },
+                    },
                     YAxes = new List<CartesianAxis>
-            {
+                    {
                         new LinearCartesianAxis
                         {
                             ScaleLabel = new ScaleLabel
@@ -169,7 +169,7 @@
                                 Color = "#6c757d"
                             }
                         }
-            }
+                    }
                 },
                 Legend = new Legend
                 {
@@ -178,7 +178,7 @@
                         FontColor = "#ffffff"
                     }
                 }
-            },
+            }
         };
 
         Directory.CreateDirectory("/data");
