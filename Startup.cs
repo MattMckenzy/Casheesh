@@ -29,6 +29,8 @@ namespace Casheesh
 
             services.AddDbContext<CasheeshContext>();
 
+            services.AddLocalization();
+
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddControllers().AddNewtonsoftJson(options =>
@@ -54,6 +56,7 @@ namespace Casheesh
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseRequestLocalization(Environment.GetEnvironmentVariable("CULTURE"));
 
             app.UseEndpoints(endpoints =>
             {
