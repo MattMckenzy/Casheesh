@@ -1,9 +1,7 @@
 ﻿@inject IJSRuntime JSRuntime
 @inject CasheeshContext Context
 
-@if (Account != null)
-{
-<div @ref="AccountCardReference" class="card bg-dark text-white m-3">
+<div data-name="@(Account.Name)" class="card bg-dark text-white m-3" hidden="@(!IsEnabled)">
     <div class="d-flex flex-row justify-content-between align-items-center">
         <h4 class="card-title text-stroke text-truncate p-3 m-0">@Account.Name</h4>
         <div @ref="EditingContainerReference" class="editing-container d-flex flex-row flex-nowrap p-3 m-0">
@@ -38,56 +36,46 @@
                 <i class="button-bright position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleBalances"></i>
             </label>
         </div>
-        <h3 class="col card-text text-stroke px-3 pb-3 m-0 text-right @(Account.CurrentBalance >= 0 ? "color-teal" : Account.CurrentBalance <= 0 ? "color-red" : string.Empty)">@Account.CurrentBalance.ToString("C", CultureInfo.GetCultureInfo(Environment.GetEnvironmentVariable("CULTURE")))</h3>
+        <h3 class="col card-text text-stroke px-3 pb-3 m-0 text-right @(Account.CurrentBalance >= 0 ? "color-teal" : Account.CurrentBalance <= 0 ? "color-red" : string.Empty)">@Account.CurrentBalance.ToString("C", CultureInfo.GetCultureInfo(Environment.GetEnvironmentVariable("CULTURE") ?? "en-CA"))</h3>
     </div>
 
     @if (IsShowingTransactions)
     {
         <div @ref="TransactionsContainerReference" class="card-container bg-dark overflow-auto w-100">
-            <TransactionsTable @bind-Account="BoundAccount" />
+            <TransactionsTable @bind-Account="Account" @bind-Account:after=@(async () => await AccountChangedCallback.InvokeAsync()) />
         </div>
     }
     else if (IsShowingRecurrences)
     {
         <div @ref="RecurrencesContainerReference" class="card-container bg-dark overflow-auto w-100">
-            <RecurrencesTable @bind-Account="BoundAccount" />
+            <RecurrencesTable @bind-Account="Account"  @bind-Account:after=@(async () => await AccountChangedCallback.InvokeAsync()) />
         </div>
     }
     else if (IsShowingBalances)
     {
         <div @ref="BalancesContainerReference" class="card-container bg-dark overflow-auto w-100">
-            <BalancesTable @bind-Account="BoundAccount" />
+            <BalancesTable @bind-Account="Account" @bind-Account:after=@(async () => await AccountChangedCallback.InvokeAsync()) />
         </div>
     }
 
 </div>
-}
 
 @code {
 
     [Parameter]
-    public Account Account { get; set; }
-    private Account BoundAccount
-    {
-        get => Account;
-        set => AccountChangedCallback.InvokeAsync(value);
-    }
-    [Parameter]
-    public EventCallback AccountChangedCallback { get; set; }
+    public required Account Account { get; set; }
 
     [Parameter]
-    public bool IsEditing
-    {
-        get => BoundIsEditing;
-        set { BoundIsEditing = value; ToggleEditing(); }
-    }
-    private bool BoundIsEditing { get; set; }
+    public required bool IsEnabled { get; set; }
 
     [Parameter]
-    public EventCallback<(string, bool)> AccountOrderChangedCallback { get; set; }
+    public required EventCallback AccountChangedCallback { get; set; }
 
     [Parameter]
-    public ElementReference AccountCardReference { get; set; }
+    public required bool IsEditing { get; set; }
+
+    [Parameter]
+    public required EventCallback<(string, bool)> AccountOrderChangedCallback { get; set; }
 
     private ElementReference EditingContainerReference { get; set; }
     private ElementReference TransactionsToggleCheckboxReference { get; set; }
@@ -120,9 +108,9 @@
     }
 
 
-    private async void ToggleEditing()
+    public async Task ToggleEditing()
     {
-        if (IsRendered && BoundIsEditing)
+        if (IsRendered && IsEditing)
         {
             await JSRuntime.InvokeVoidAsync("ShowContainer", EditingContainerReference);
         }
@@ -130,6 +118,8 @@
         {
             await JSRuntime.InvokeVoidAsync("HideContainer", EditingContainerReference);
         }
+
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task MoveAccountUp() =>
@@ -151,7 +141,6 @@
                 account.Order = orderReset++;
 
             await Context.SaveChangesAsync();
-            Account = null;
         }
     }
 
@@ -163,13 +152,13 @@
 
             IsShowingTransactions = true;
             await InvokeAsync(StateHasChanged);
-            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCardReference, 600);
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeightByName", Account.Name, 600);
             await JSRuntime.InvokeVoidAsync("CardContainerExpand", TransactionsContainerReference);
         }
         else
         {
             await JSRuntime.InvokeVoidAsync("CardContainerShrink", TransactionsContainerReference);
-            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCardReference, 106);
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeightByName", Account.Name, 106);
             IsShowingTransactions = false;
         }
     }
@@ -182,13 +171,13 @@
 
             IsShowingRecurrences = true;
             await InvokeAsync(StateHasChanged);
-            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCardReference, 600);
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeightByName", Account.Name, 600);
             await JSRuntime.InvokeVoidAsync("CardContainerExpand", RecurrencesContainerReference);
         }
         else
         {
             await JSRuntime.InvokeVoidAsync("CardContainerShrink", RecurrencesContainerReference);
-            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCardReference, 106);
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeightByName", Account.Name, 106);
             IsShowingRecurrences = false;
         }
     }
@@ -201,13 +190,13 @@
 
             IsShowingBalances = true;
             await InvokeAsync(StateHasChanged);
-            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCardReference, 600);
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeightByName", Account.Name, 600);
             await JSRuntime.InvokeVoidAsync("CardContainerExpand", BalancesContainerReference);
         }
         else
         {
             await JSRuntime.InvokeVoidAsync("CardContainerShrink", BalancesContainerReference);
-            await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCardReference, 106);
+            await JSRuntime.InvokeVoidAsync("ChangeElementHeightByName", Account.Name, 106);
             IsShowingBalances = false;
         }
     }
@@ -216,21 +205,21 @@
     {
         if (currentToggle != "Transaction" && IsShowingTransactions)
         {
-            await ToggleTransactions(null);
+            await ToggleTransactions(new MouseEventArgs());
             await JSRuntime.InvokeVoidAsync("UncheckElement", TransactionsToggleCheckboxReference);
             await InvokeAsync(StateHasChanged);
             await Task.Delay(100);
         }
         else if (currentToggle != "Recurrences" && IsShowingRecurrences)
         {
-            await ToggleRecurrences(null);
+            await ToggleRecurrences(new MouseEventArgs());
             await JSRuntime.InvokeVoidAsync("UncheckElement", RecurrencesToggleCheckboxReference);
             await InvokeAsync(StateHasChanged);
             await Task.Delay(100);
         }
         else if (currentToggle != "Balances" && IsShowingBalances)
         {
-            await ToggleBalances(null);
+            await ToggleBalances(new MouseEventArgs());
             await JSRuntime.InvokeVoidAsync("UncheckElement", BalancesToggleCheckboxReference);
             await InvokeAsync(StateHasChanged);
             await Task.Delay(100);

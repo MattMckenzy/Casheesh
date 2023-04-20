@@ -56,6 +56,7 @@ namespace Casheesh.Services
                             {
                                 Number = !recurrence.Account.Transactions.Any() ? 1 : recurrence.Account.Transactions.OrderByDescending(transaction => transaction.Timestamp).First().Number + 1,
                                 AccountName = recurrence.AccountName,
+                                Account = recurrence.Account,
                                 Value = recurrenceValue,
                                 Description = $"{(recurrence.IsRate ? "Applied rate" : "Recurring transaction")}: {recurrence.Name} - {recurrence.Description}",
                                 Timestamp = DateTime.Now
@@ -65,7 +66,7 @@ namespace Casheesh.Services
                         }
                     }
 
-                    Account netWorthAccount = await context.Accounts.FindAsync(new object[] { "Net Worth" }, cancellationToken: stoppingToken);
+                    Account? netWorthAccount = await context.Accounts.FindAsync(new object[] { "Net Worth" }, cancellationToken: stoppingToken);
                     if (netWorthAccount != null)
                     {
                         context.RemoveRange(netWorthAccount.Transactions);
@@ -74,13 +75,14 @@ namespace Casheesh.Services
 
                     foreach (Account account in context.Accounts)
                     {
-                        Balance latestBalance = account.Balances.OrderByDescending(balance => balance.Id).FirstOrDefault();
+                        Balance? latestBalance = account.Balances.OrderByDescending(balance => balance.Id).FirstOrDefault();
                         if (latestBalance == null || (DateTime.Now.Date > latestBalance.Timestamp.Date && latestBalance.Value != account.CurrentBalance))
                         {
                             context.Balances.Add(new Balance
                             {
                                 AccountName = account.Name,
-                                Id = !account.Balances.Any() ? 1 : latestBalance.Id + 1,
+                                Account = account,
+                                Id = (latestBalance?.Id ?? 0) + 1,
                                 Value = account.CurrentBalance,
                                 Timestamp = DateTime.Now                                
                             });

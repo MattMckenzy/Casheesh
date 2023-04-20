@@ -22,7 +22,7 @@
         </div>
         <div class="text-stroke mr-3">@($"{Bounty.Name} - {Bounty.Description}")</div>
     </div>
-    <div class="text-stroke text-right color-teal">@(Bounty.Value.ToString("C", CultureInfo.GetCultureInfo(Environment.GetEnvironmentVariable("CULTURE"))))</div>
+    <div class="text-stroke text-right color-teal">@(Bounty.Value.ToString("C", CultureInfo.GetCultureInfo(Environment.GetEnvironmentVariable("CULTURE") ?? "en-CA")))</div>
 </div>
 <div @ref="BountyEditingContainerReference" class="hidden-container bd-highlight overflow-hidden">
     <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center mx-3 mb-2">
@@ -78,15 +78,15 @@
 @code {
 
     [Parameter]
-    public Bounty Bounty { get; set; }
+    public required Bounty Bounty { get; set; }
     [Parameter]
-    public EventCallback<Bounty> BountyChanged { get; set; }
+    public required EventCallback<Bounty> BountyChanged { get; set; }
 
     [Parameter]
-    public EventCallback AccountChangedCallback { get; set; }
+    public required EventCallback AccountChangedCallback { get; set; }
 
     [Parameter]
-    public EventCallback BountiesChangedCallback { get; set; }
+    public required EventCallback BountiesChangedCallback { get; set; }
 
     private string BountyDescription { get; set; } = string.Empty;
     private string BountyValue { get; set; } = string.Empty;
@@ -115,7 +115,7 @@
 
     protected override Task OnParametersSetAsync()
     {
-        BountyDescription = Bounty.Description;
+        BountyDescription = Bounty.Description ?? string.Empty;
         BountyValue = Bounty.Value.ToString();
         BountyBaseValue = Bounty.BaseValue.ToString();
         BountyMaxValue = Bounty.MaxValue.ToString();
@@ -198,12 +198,16 @@
         await ToggleBountyApplying();
         await JSRuntime.InvokeVoidAsync("UncheckElement", BountiesApplyingCheckboxReference);
 
-        Account applyingAccount = await Context.FindAsync<Account>(ApplyingAccountName);
+        Account? applyingAccount = await Context.FindAsync<Account>(ApplyingAccountName);
+        if (applyingAccount == null)
+            return;
+
         applyingAccount.Transactions.Add(new Transaction
         {
             Description = $"Claimed Bounty: {Bounty.Name}",
             Value = Bounty.Value,
             AccountName = ApplyingAccountName,
+            Account = applyingAccount,
             Timestamp = DateTime.Now,
             Number = !applyingAccount.Transactions.Any() ? 1 : applyingAccount.Transactions.OrderByDescending(transaction => transaction.Timestamp).First().Number + 1
         });

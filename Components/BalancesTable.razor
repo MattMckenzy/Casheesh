@@ -27,27 +27,27 @@
 </div>
 
 <ul class="list-group list-group-flush my-3">
-    @foreach (Balance balance in Account.Balances.OrderByDescending(balance => balance.Timestamp).ToList())
-    {
-        Balance balanceEntity = Context.Balances.Find(Account.Name, balance.Id);
-        <li class="list-group-item bg-dark">
-            <BalanceItem @bind-Account="BoundAccount" @bind-Balance="balanceEntity" />
-        </li>
-    }
+    <Virtualize Context=balance Items=@(Account.Balances.OrderByDescending(balance => balance.Timestamp).ToList()) OverscanCount="25">
+        @{
+            Balance? balanceEntity = Context.Balances.Find(Account.Name, balance.Id);
+
+            if (balanceEntity != null)
+            {
+                <li class="list-group-item bg-dark">
+                    <BalanceItem @bind-Account="Account" @bind-Account:after=@(async () => await AccountChanged.InvokeAsync(Account)) @bind-Balance="balanceEntity" />
+                </li>
+            }
+        }
+    </Virtualize>
 </ul>
 
 @code {
 
     [Parameter]
-    public Account Account { get; set; }
+    public required Account Account { get; set; }
+
     [Parameter]
     public EventCallback<Account> AccountChanged { get; set; }
-
-    private Account BoundAccount
-    {
-        get => Account;
-        set => AccountChanged.InvokeAsync(value);
-    }
 
     private bool IsShowingBalanceCreation { get; set; } = false;
     private bool IsBalanceMode { get; set; } = true;
@@ -74,11 +74,13 @@
 
     private async Task CreateBalance()
     {
-        Balance latestBalance = Account.Balances.OrderByDescending(balance => balance.Id).FirstOrDefault();
+        Balance? latestBalance = Account.Balances.OrderByDescending(balance => balance.Id).FirstOrDefault();
         Balance balance = new Balance
         {
+            AccountName = Account.Name,
+            Account = Account,
             Value = double.Parse(NewBalanceValue),
-            Id = !Account.Balances.Any() ? 1 : latestBalance.Id + 1,
+            Id = (latestBalance?.Id ?? 0) + 1,
             Timestamp = NewBalanceTimestamp
         };
 

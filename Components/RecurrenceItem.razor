@@ -10,9 +10,25 @@
                 <i class="button-bright button-subtle position-absolute close-button mdi mdi-close icon-responsive" @onclick="ToggleRecurrenceEditing"></i>
             </label>
         </div>
-        <div class="text-stroke mr-3">@($"In {Math.Round((Recurrence.LastApplied + Recurrence.TimeSpan - DateTime.Now).TotalDays, MidpointRounding.ToPositiveInfinity)} days: {Recurrence.Name} - {Recurrence.Description}")</div>
+        <div class="text-stroke mr-3">
+            @{
+                int daysSpan = (int)Math.Round((Recurrence.LastApplied + Recurrence.TimeSpan - DateTime.Now).TotalDays, MidpointRounding.ToPositiveInfinity);
+                if (daysSpan < 1)
+                {
+                    @($"At next processing! {Recurrence.Name} - {Recurrence.Description}")
+                }
+                else if (daysSpan == 1)
+                {
+                    @($"Tomorrow! {Recurrence.Name} - {Recurrence.Description}")
+                }
+                else
+                {
+                    @($"In {daysSpan} days: {Recurrence.Name} - {Recurrence.Description}")                    
+                }
+            }
+        </div>
     </div>
-    <div class="text-stroke text-right @(Recurrence.Value >= 0 ? "color-teal" : Recurrence.Value <= 0 ? "color-red" : string.Empty)">@(Recurrence.Value.ToString(Recurrence.IsRate ? "P" : "C", CultureInfo.GetCultureInfo(Environment.GetEnvironmentVariable("CULTURE"))))</div>
+    <div class="text-stroke text-right @(Recurrence.Value >= 0 ? "color-teal" : Recurrence.Value <= 0 ? "color-red" : string.Empty)">@(Recurrence.Value.ToString(Recurrence.IsRate ? "P" : "C", CultureInfo.GetCultureInfo(Environment.GetEnvironmentVariable("CULTURE") ?? "en-CA")))</div>
 </div>
 <div @ref="RecurrenceEditingContainerReference" class="hidden-container bd-highlight overflow-hidden">
     <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center my-2 mr-1">
@@ -46,19 +62,19 @@
 @code {
 
     [Parameter]
-    public Account Account { get; set; }
+    public required Account Account { get; set; }
     [Parameter]
-    public EventCallback<Account> AccountChanged { get; set; }
+    public required EventCallback<Account> AccountChanged { get; set; }
 
     [Parameter]
-    public Recurrence Recurrence { get; set; }
+    public required Recurrence Recurrence { get; set; }
     [Parameter]
-    public EventCallback<Recurrence> RecurrenceChanged { get; set; }
+    public required EventCallback<Recurrence> RecurrenceChanged { get; set; }
 
-    private string NewRecurrenceDescription { get; set; }
-    private bool NewRecurrenceIsRate { get; set; }
-    private double NewRecurrenceValue { get; set; }
-    private string NewRecurrenceDays { get; set; }
+    private string NewRecurrenceDescription { get; set; } = string.Empty;
+    private bool NewRecurrenceIsRate { get; set; } = false;
+    private double NewRecurrenceValue { get; set; } = 0;
+    private int NewRecurrenceDays { get; set; } = 1;
     private DateTime NewRecurrenceNextDate { get; set; }
 
     private bool IsShowingRecurrenceEditing { get; set; } = false;
@@ -68,11 +84,11 @@
 
     protected override Task OnParametersSetAsync()
     {
-        NewRecurrenceDescription = Recurrence.Description;
+        NewRecurrenceDescription = Recurrence.Description ?? string.Empty;
         NewRecurrenceIsRate = Recurrence.IsRate;
         NewRecurrenceValue = Recurrence.Value;
-        NewRecurrenceNextDate = Recurrence.LastApplied + TimeSpan.FromDays(int.Parse(string.IsNullOrWhiteSpace(NewRecurrenceDays) ? "0" : NewRecurrenceDays));
-        NewRecurrenceDays = Recurrence.TimeSpan.Days.ToString();
+        NewRecurrenceNextDate = Recurrence.LastApplied + TimeSpan.FromDays(NewRecurrenceDays);
+        NewRecurrenceDays = Recurrence.TimeSpan.Days;
 
         return base.OnParametersSetAsync();
     }
@@ -99,8 +115,8 @@
         Recurrence.Description = NewRecurrenceDescription;
         Recurrence.IsRate = NewRecurrenceIsRate;
         Recurrence.Value = NewRecurrenceValue;
-        Recurrence.LastApplied = NewRecurrenceNextDate - TimeSpan.FromDays(int.Parse(NewRecurrenceDays));
-        Recurrence.TimeSpan = TimeSpan.FromDays(int.Parse(NewRecurrenceDays));
+        Recurrence.LastApplied = NewRecurrenceNextDate - TimeSpan.FromDays(NewRecurrenceDays);
+        Recurrence.TimeSpan = TimeSpan.FromDays(NewRecurrenceDays);
 
         await Context.SaveChangesAsync();
 

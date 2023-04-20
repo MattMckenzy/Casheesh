@@ -49,8 +49,8 @@
     <script src="_content/ChartJs.Blazor.Fork/ChartJsBlazorInterop.js"></script>
 
     <script>
-        Culture = "@(Environment.GetEnvironmentVariable("CULTURE"))";
-        CurrencyCode = "@(new RegionInfo(Environment.GetEnvironmentVariable("CULTURE")).ISOCurrencySymbol)";
+        Culture = "@(Environment.GetEnvironmentVariable("CULTURE") ?? "en-CA")";
+        CurrencyCode = "@(new RegionInfo(Environment.GetEnvironmentVariable("CULTURE") ?? "en-CA").ISOCurrencySymbol)";
     </script>
 </body>
 </html>

@@ -12,7 +12,7 @@
         </div>
         <div class="text-stroke mr-3">@($"{Balance.Timestamp.ToShortDateString()}")</div>
     </div>
-    <div class="text-stroke text-right @(Balance.Value >= 0 ? "color-teal" : Balance.Value <= 0 ? "color-red" : string.Empty)">@(Balance.Value.ToString("C", CultureInfo.GetCultureInfo(Environment.GetEnvironmentVariable("CULTURE"))))</div>
+    <div class="text-stroke text-right @(Balance.Value >= 0 ? "color-teal" : Balance.Value <= 0 ? "color-red" : string.Empty)">@(Balance.Value.ToString("C", CultureInfo.GetCultureInfo(Environment.GetEnvironmentVariable("CULTURE") ?? "en-CA")))</div>
 </div>
 <div @ref="BalanceEditingContainerReference" class="hidden-container bd-highlight overflow-hidden">
     <div class="d-flex flex-row flex-grow-1 bd-highlight align-items-center my-2 mr-1">
@@ -34,14 +34,14 @@
 @code {
 
     [Parameter]
-    public Account Account { get; set; }
+    public required Account Account { get; set; }
     [Parameter]
-    public EventCallback<Account> AccountChanged { get; set; }
+    public required EventCallback<Account> AccountChanged { get; set; }
 
     [Parameter]
-    public Balance Balance { get; set; }
+    public required Balance Balance { get; set; }
     [Parameter]
-    public EventCallback<Balance> BalanceChanged { get; set; }
+    public required EventCallback<Balance> BalanceChanged { get; set; }
 
     private bool IsShowingBalanceEditing { get; set; } = false;
 

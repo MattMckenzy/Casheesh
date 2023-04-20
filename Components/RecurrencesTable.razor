@@ -44,27 +44,26 @@
 </div>
 
 <ul class="list-group list-group-flush my-3">
-    @foreach (Recurrence recurrence in Account.Recurrences.OrderByDescending(recurrence => recurrence.LastApplied).ToList())
-    {
-        Recurrence recurrenceEntity = Context.Recurrences.Find(recurrence.AccountName, recurrence.Name);
-        <li class="list-group-item bg-dark">
-            <RecurrenceItem @bind-Account="BoundAccount" @bind-Recurrence="recurrenceEntity" />
-        </li>
-    }
+    <Virtualize Context=recurrence Items=@(Account.Recurrences.OrderByDescending(recurrence => recurrence.LastApplied).ToList()) OverscanCount="25">
+        @{
+            Recurrence? recurrenceEntity = Context.Recurrences.Find(recurrence.AccountName, recurrence.Name);
+
+            if(recurrenceEntity != null)
+            {
+                <li class="list-group-item bg-dark">
+                    <RecurrenceItem @bind-Account=Account @bind-Account:after=@(async () => await AccountChanged.InvokeAsync(Account)) @bind-Recurrence=recurrenceEntity />
+                </li>
+            }
+        }
+    </Virtualize>
 </ul>
 
 @code {
 
     [Parameter]
-    public Account Account { get; set; }
+    public required Account Account { get; set; }
     [Parameter]
-    public EventCallback<Account> AccountChanged { get; set; }
-
-    private Account BoundAccount
-    {
-        get => Account;
-        set => AccountChanged.InvokeAsync(value);
-    }
+    public required EventCallback<Account> AccountChanged { get; set; }
 
     private bool IsShowingRecurrenceCreation { get; set; } = false;
     private bool IsNewRecurrenceNameValid { get; set; } = false;
@@ -72,16 +71,16 @@
     private ElementReference RecurrencesCreationCheckboxReference { get; set; }
     private ElementReference RecurrenceCreationContainerReference { get; set; }
 
-    private string NewRecurrenceName { get; set; }
-    private string NewRecurrenceDescription { get; set; }
+    private string NewRecurrenceName { get; set; } = string.Empty;
+    private string NewRecurrenceDescription { get; set; } = string.Empty;
     private bool NewRecurrenceIsRate { get; set; } = false;
-    private string NewRecurrenceValue { get; set; } = string.Empty;
-    private string NewRecurrenceDays { get; set; } = string.Empty;
+    private double NewRecurrenceValue { get; set; } = 0;
+    private int NewRecurrenceDays { get; set; } = 0;
     private DateTime NewRecurrenceFirstDate { get; set; } = DateTime.Now;
 
     private async Task NewRecurrenceNameChanged(ChangeEventArgs changeEventArgs)
     {
-        if (string.IsNullOrWhiteSpace((string)changeEventArgs.Value) || await Context.FindAsync<Recurrence>(Account.Name, (string)changeEventArgs.Value) != null)
+        if (string.IsNullOrWhiteSpace((string?)changeEventArgs.Value ?? string.Empty) || await Context.FindAsync<Recurrence>(Account.Name, (string)changeEventArgs.Value!) != null)
             IsNewRecurrenceNameValid = false;
         else
             IsNewRecurrenceNameValid = true;
@@ -114,12 +113,13 @@
         Recurrence recurrence = new Recurrence
         {
             AccountName = Account.Name,
+            Account = Account,
             Name = NewRecurrenceName,
             Description = NewRecurrenceDescription,
-            Value = double.Parse(NewRecurrenceValue),
+            Value = NewRecurrenceValue,
             IsRate = NewRecurrenceIsRate,
-            TimeSpan = TimeSpan.FromDays(int.Parse(NewRecurrenceDays)),
-            LastApplied = NewRecurrenceFirstDate - TimeSpan.FromDays(int.Parse(NewRecurrenceDays))
+            TimeSpan = TimeSpan.FromDays(NewRecurrenceDays),
+            LastApplied = NewRecurrenceFirstDate - TimeSpan.FromDays(NewRecurrenceDays)
         };
         Account.Recurrences.Add(recurrence);
         await Context.SaveChangesAsync();
@@ -127,9 +127,9 @@
         await ToggleRecurrenceCreation();
         NewRecurrenceName = string.Empty;
         NewRecurrenceDescription = string.Empty;
-        NewRecurrenceValue = string.Empty;
+        NewRecurrenceValue = 0;
+        NewRecurrenceDays = 0;
         NewRecurrenceIsRate = false;
-        NewRecurrenceDays = string.Empty;
         NewRecurrenceFirstDate = DateTime.Now;
         await JSRuntime.InvokeVoidAsync("UncheckElement", RecurrencesCreationCheckboxReference);
 

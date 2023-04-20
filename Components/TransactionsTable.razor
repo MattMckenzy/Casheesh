@@ -28,27 +28,25 @@
 </div>
 
 <ul class="list-group list-group-flush my-3">
-    @foreach (Transaction transaction in Account.Transactions.OrderByDescending(transaction => transaction.Number).ToList())
-    {
-        Transaction transactionEntity = Context.Transactions.Find(transaction.AccountName, transaction.Number);
-        <li class="list-group-item bg-dark">
-            <TransactionItem @bind-Account="BoundAccount" @bind-Transaction="transactionEntity" />
-        </li>
-    }
+    <Virtualize Context=transaction Items=@(Account.Transactions.OrderByDescending(transaction => transaction.Number).ToList()) OverscanCount="25">
+        @{
+            Transaction? transactionEntity = Context.Transactions.Find(transaction.AccountName, transaction.Number); 
+            if (transactionEntity != null)
+            {
+                <li class="list-group-item bg-dark">
+                    <TransactionItem @bind-Account=Account @bind-Account:after=@(async () => await AccountChanged.InvokeAsync(Account)) @bind-Transaction=transactionEntity />
+                </li>
+            }
+        }
+    </Virtualize>
 </ul>
 
 @code {
 
     [Parameter]
-    public Account Account { get; set; }
+    public required Account Account { get; set; }
     [Parameter]
-    public EventCallback<Account> AccountChanged { get; set; }
-
-    private Account BoundAccount
-    {
-        get => Account;
-        set => AccountChanged.InvokeAsync(value);
-    }
+    public required EventCallback<Account> AccountChanged { get; set; }
 
     private bool IsShowingTransactionCreation { get; set; } = false;
     private bool IsTransactionMode { get; set; } = true;
@@ -57,7 +55,7 @@
     private ElementReference TransactionCreationContainerReference { get; set; }
 
     private string NewTransactionValue { get; set; } = string.Empty;
-    private string NewTransactionDescription { get; set; }
+    private string NewTransactionDescription { get; set; } = string.Empty;
 
     private async Task ToggleTransactionCreation()
     {
@@ -94,6 +92,7 @@
             Description = NewTransactionDescription,
             Value = IsTransactionMode ? double.Parse(NewTransactionValue) : double.Parse(NewTransactionValue) - Account.CurrentBalance,
             AccountName = Account.Name,
+            Account = Account,
             Timestamp = DateTime.Now,
             Number = !Account.Transactions.Any() ? 1 : Account.Transactions.OrderByDescending(transaction => transaction.Timestamp).First().Number+1
         };

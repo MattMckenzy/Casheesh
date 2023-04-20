@@ -28,7 +28,7 @@ namespace Casheesh.Controllers
         [HttpPost]
         public async Task<ActionResult<Transaction>> PostTransaction(Transaction transaction)
         {
-            Account account = _context.Find<Account>(transaction.AccountName);
+            Account? account = _context.Find<Account>(transaction.AccountName);
             if (account == null)
                 return BadRequest("The given account was not found!");
 

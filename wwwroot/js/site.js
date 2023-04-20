@@ -4,6 +4,12 @@ ChangeElementHeight = (element, newHeight) => {
     element.style.height = newHeight.toString() + 'px';
 };
 
+ChangeElementHeightByName = (dataName, newHeight) => {
+    element = document.querySelector(`div[data-name="${dataName}"]`);
+    if (element != null)
+        element.style.height = newHeight.toString() + 'px';
+};
+
 UncheckElement = (element) => {
     element.checked = false;
 };
@@ -18,12 +24,16 @@ HideContainer = (element) => {
     element.style.pointerEvents = "none";
 };
 
-PullAway = (element) => {
-    element.classList.add("pull-away");
+PullAway = (dataName) => {
+    element = document.querySelector(`div[data-name="${dataName}"]`);
+    if (element != null)
+        element.classList.add("pull-away");
 };
 
-BringBack = (element) => {
-    element.classList.remove("pull-away");
+BringBack = (dataName) => {
+    element = document.querySelector(`div[data-name="${dataName}"]`);
+    if (element != null)
+        element.classList.remove("pull-away");
 };
 
 CardContainerExpand = (element) => {

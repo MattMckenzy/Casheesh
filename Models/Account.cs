@@ -5,11 +5,10 @@ namespace Casheesh.Models
 {
     public class Account
     {
-        [Required, Key]
-        public string Name { get; set; }
+        [Key]
+        public required string Name { get; set; }
 
-        [Required]
-        public double CurrentBalance { get; set; }
+        public required double CurrentBalance { get; set; }
 
         public int Order { get; set; }
 

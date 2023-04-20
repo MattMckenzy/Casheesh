@@ -1,13 +1,11 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace Casheesh.Models
 {
     public class Balance
     {
-        [Required]
-        public string AccountName { get; set; }
-        public virtual Account Account { get; set; }
+        public required string AccountName { get; set; }
+        public required virtual Account Account { get; set; }
 
         public int Id { get; set; }
 

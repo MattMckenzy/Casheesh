@@ -10,8 +10,8 @@
         <div class="col-auto m-3 p-0 button-container button-container-36">
             <input @ref="AccountCreationCheckboxReference" class="invisible-toggle" type="checkbox" id="AccountCreationToggle" />
             <label class="button-label button-label-36 m-0" for="AccountCreationToggle">
-                <i class="button-bright position-absolute open-button mdi mdi-pencil mdi-36px icon-responsive-36" @onclick="ToggleEditMode"></i>
-                <i class="button-bright position-absolute close-button mdi mdi-close mdi-36px icon-responsive-36" @onclick="ToggleEditMode"></i>
+                <i class="button-bright position-absolute open-button mdi mdi-pencil mdi-36px icon-responsive-36" @onclick=ToggleEditMode></i>
+                <i class="button-bright position-absolute close-button mdi mdi-close mdi-36px icon-responsive-36" @onclick=ToggleEditMode></i>
             </label>
         </div>
     </div>
@@ -20,33 +20,30 @@
         <div class="d-flex flex-row bd-highlight align-items-center justify-content-end mb-3 mr-2">
             <i class="button-bright button-label-36 mdi mdi-piggy-bank mdi-36px m-0 mr-2"></i>
             <label class="text-stroke m-0 mr-2">Net worth card:</label>
-            <input @bind="EnableNetWorthCard" class="m-0 mr-2" type="checkbox" id="NetWorthCardCheckbox" />
+            <input @bind="EnableNetWorthCard" @bind:after=UpdateSettings class="m-0 mr-2" type="checkbox" id="NetWorthCardCheckbox" />
         </div>
         <div class="d-flex flex-row bd-highlight align-items-center justify-content-end mb-3 mr-2">
             <i class="button-bright button-label-36 mdi mdi-chart-line mdi-36px m-0 mr-2"></i>
             <label class="text-stroke m-0 mr-2">Chart card:</label>
-            <input @bind="EnableChartCard" class="m-0 mr-2" type="checkbox" id="ChartCardCheckbox" />
+            <input @bind="EnableChartCard" @bind:after=UpdateSettings class="m-0 mr-2" type="checkbox" id="ChartCardCheckbox" />
         </div>
         <div class="d-flex flex-row bd-highlight align-items-center justify-content-end mb-3 mr-2">
             <i class="button-bright button-label-36 mdi mdi-cash-multiple mdi-36px m-0 mr-2"></i>
             <label class="text-stroke m-0 mr-2">Bounties card:</label>
-            <input @bind="EnableBountiesCard" class="m-0 mr-2" type="checkbox" id="NetWorthCardCheckbox" />
+            <input @bind="EnableBountiesCard" @bind:after=UpdateSettings class="m-0 mr-2" type="checkbox" id="NetWorthCardCheckbox" />
         </div>
         <div class="d-flex flex-row bd-highlight align-items-center justify-content-end mb-3 mr-2">
             <i class="button-bright button-label-36 mdi mdi-bank-plus mdi-36px m-0 mr-2"></i>
             <label class="text-stroke m-0 mr-2">Name:</label>
-            <input @bind="NewAccountName" class="@(IsNewAccountNameValid ? "input-valid" : "input-invalid") input-name m-0 mr-2" id="AccountName" aria-describedby="AccountNameFeedback" @oninput="NewAccountNameChanged" required />
-            <i class="button-bright @(IsNewAccountNameValid ? string.Empty : "button-disabled") mdi mdi-content-save icon-responsive m-0" @onclick="CreateAccount"></i>
+            <input @bind="NewAccountName" class="@(IsNewAccountNameValid ? "input-valid" : "input-invalid") input-name m-0 mr-2" id="AccountName" aria-describedby="AccountNameFeedback" @oninput=NewAccountNameChanged required />
+            <i class="button-bright @(IsNewAccountNameValid ? string.Empty : "button-disabled") mdi mdi-content-save icon-responsive m-0" @onclick=CreateAccount></i>
         </div>
     </div>
 
     <div class="d-flex flex-wrap m-0 justify-content-center">
         @foreach (Account account in Context.Accounts.OrderBy(account => account.Order))
         {
-            if (account.Name != "Net Worth" || EnableNetWorthCard)
-            {
-                <AccountCard Account="account" @ref="AccountCardReference" AccountChangedCallback="RefreshBalance" AccountOrderChangedCallback="ChangeAccountOrder" IsEditing="IsEditing" />
-            }
+            <AccountCard Account=account @ref="AccountCardReferences[account.Name]" IsEnabled=@(EnableNetWorthCard || account.Name != "Net Worth") AccountChangedCallback=RefreshBalance AccountOrderChangedCallback=ChangeAccountOrder IsEditing=IsEditing> </AccountCard>
         }
 
         @if (EnableChartCard)
@@ -59,41 +56,37 @@
                     <i class="button-label mdi mdi-chart-line"></i>
                 </div>
                 <div class="p-3 w-100 h-100">
-                    <Chart @ref="Chart" Config="LineConfig"></Chart>
+                    <Chart @ref=Chart Config=LineConfig></Chart>
                 </div>
             </div>
         }
 
         @if (EnableBountiesCard)
         {
-            <BountiesCard AccountChangedCallback="RefreshAccountBalance" />
+            <BountiesCard AccountChangedCallback=RefreshAccountBalance />
         }
     </div>
 </div>
 
 @code
 {
-    private bool enableNetWorthCard;
-    private bool EnableNetWorthCard { get { return enableNetWorthCard; } set { enableNetWorthCard = value; UpdateSettings(); } }
-    private bool enableChartCard;
-    private bool EnableChartCard { get { return enableChartCard; } set { enableChartCard = value; UpdateSettings(); } }
-    private bool enableBountiesCard;
-    private bool EnableBountiesCard { get { return enableBountiesCard; } set { enableBountiesCard = value; UpdateSettings(); } }
+    private bool EnableNetWorthCard { get; set; }
+    private bool EnableChartCard { get; set; }
+    private bool EnableBountiesCard { get; set; }
 
-    private string NewAccountName { get; set; }
+    private string NewAccountName { get; set; } = string.Empty;
     private bool IsNewAccountNameValid { get; set; } = false;
 
     private bool IsEditing { get; set; } = false;
     private ElementReference AccountCreationCheckboxReference { get; set; }
     private ElementReference AccountCreationContainerReference { get; set; }
 
-    private List<AccountCard> AccountCardReferences = new();
-    private AccountCard AccountCardReference { set => AccountCardReferences.Add(value); }
+    private Dictionary<string, AccountCard?> AccountCardReferences { get; set; } = new();
 
-    private Chart Chart;
-    private LineConfig LineConfig;
+    private Chart? Chart { get; set; } = null!;
+    private LineConfig? LineConfig { get; set; } = null!;
 
-    private FileInfo SettingsFile;
+    private FileInfo SettingsFile { get; set; } = null!;
 
     private string[] colors =
     {
@@ -189,7 +182,7 @@
             EnableNetWorthCard = true;
             EnableChartCard = true;
             EnableBountiesCard = true;
-            UpdateSettings();
+            await UpdateSettings();
         }
 
         (EnableNetWorthCard, EnableChartCard, EnableBountiesCard) = JsonConvert.DeserializeObject<(bool, bool, bool)>(File.ReadAllText(SettingsFile.FullName));
@@ -208,9 +201,10 @@
         await RefreshBalance();
     }
 
-    private void UpdateSettings()
+    private async Task UpdateSettings()
     {
         File.WriteAllText(SettingsFile.FullName, JsonConvert.SerializeObject((EnableNetWorthCard, EnableChartCard, EnableBountiesCard)));
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task ToggleEditMode()
@@ -225,11 +219,17 @@
             await JSRuntime.InvokeVoidAsync("ChangeElementHeight", AccountCreationContainerReference, 0);
             IsEditing = false;
         }
+
+        await InvokeAsync(StateHasChanged);
+
+        foreach (AccountCard? accountCard in AccountCardReferences.Values)
+            if (accountCard != null)
+                await accountCard.ToggleEditing();
     }
 
     private async Task NewAccountNameChanged(ChangeEventArgs changeEventArgs)
     {
-        if (string.IsNullOrWhiteSpace((string)changeEventArgs.Value) || await Context.FindAsync<Account>((string)changeEventArgs.Value) != null)
+        if (string.IsNullOrWhiteSpace((string?)changeEventArgs.Value ?? string.Empty) || await Context.FindAsync<Account>((string)changeEventArgs.Value!) != null)
             IsNewAccountNameValid = false;
         else
             IsNewAccountNameValid = true;
@@ -246,8 +246,9 @@
         }
 
         Context.Accounts.Add(new Account
-        {
+        {            
             Name = NewAccountName,
+            CurrentBalance = 0,
             Order = !Context.Accounts.Any() ? 1 : Context.Accounts.OrderByDescending(account => account.Order).First().Order + 1
         });
 
@@ -263,7 +264,7 @@
 
     private async Task RefreshBalance()
     {
-        AccountCard netWorthCard = AccountCardReferences.FirstOrDefault(accountCard => accountCard.Account.Name == "Net Worth");
+        AccountCardReferences.TryGetValue("Net Worth", out AccountCard? netWorthCard);
         if (netWorthCard != null)
             await netWorthCard.UpdateNetWorth();
     }
@@ -275,25 +276,42 @@
 
     private async Task ChangeAccountOrder((string AccountName, bool moveUp) newAccountOrder)
     {
-        Account changingAccount = Context.Accounts.Find(newAccountOrder.AccountName);
-        int newAccountOrderNumber = newAccountOrder.moveUp ? changingAccount.Order - 1 : changingAccount.Order + 1;
-        changingAccount.Order = newAccountOrderNumber;
-        ElementReference changingAccountCardReference = AccountCardReferences.First(accountCardReference => accountCardReference.Account.Name == newAccountOrder.AccountName).AccountCardReference;
+        int orderReset = 1;
+        foreach (Account account in Context.Accounts.OrderBy(account => account.Order).ToList())
+            account.Order = orderReset++;
 
-        Account affectedAccount = Context.Accounts.First(account => account.Order == newAccountOrderNumber);
-        if (newAccountOrder.moveUp)
-            affectedAccount.Order++;
-        else if (!newAccountOrder.moveUp)
-            affectedAccount.Order--;
-        ElementReference affectedAccountCardReference = AccountCardReferences.First(accountCardReference => accountCardReference.Account.Name == affectedAccount.Name).AccountCardReference;
+        Account? changingAccount = Context.Accounts.Find(newAccountOrder.AccountName);
+        if (changingAccount == null)
+            return;
 
-        await JSRuntime.InvokeVoidAsync("PullAway", changingAccountCardReference);
-        await JSRuntime.InvokeVoidAsync("PullAway", affectedAccountCardReference);
+        int? newAccountOrderNumber =
+            newAccountOrder.moveUp ?
+            Context.Accounts
+                .Where(account => account.Order < changingAccount.Order && (EnableNetWorthCard || account.Name != "Net Worth"))
+                .OrderByDescending(account => account.Order).FirstOrDefault()?.Order :
+            Context.Accounts
+                .Where(account => account.Order > changingAccount.Order && (EnableNetWorthCard || account.Name != "Net Worth"))
+                .OrderBy(account => account.Order).FirstOrDefault()?.Order;
+
+        if (newAccountOrderNumber == null)
+            return;
+
+        Account? affectedAccount = Context.Accounts.FirstOrDefault(account => account.Order == newAccountOrderNumber);
+        if (affectedAccount == null)
+            return;
+
+        affectedAccount.Order = changingAccount.Order;
+        changingAccount.Order = (int)newAccountOrderNumber;
+
+        await JSRuntime.InvokeVoidAsync("PullAway", changingAccount.Name);
+        await JSRuntime.InvokeVoidAsync("PullAway", affectedAccount.Name);
 
         await Context.SaveChangesAsync();
         await InvokeAsync(StateHasChanged);
 
-        await JSRuntime.InvokeVoidAsync("BringBack", changingAccountCardReference);
-        await JSRuntime.InvokeVoidAsync("BringBack", affectedAccountCardReference);
+        await JSRuntime.InvokeVoidAsync("BringBack", changingAccount.Name);
+        await JSRuntime.InvokeVoidAsync("BringBack", affectedAccount.Name);
+
+        await InvokeAsync(StateHasChanged);
     }
 }

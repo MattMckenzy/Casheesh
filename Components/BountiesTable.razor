@@ -55,13 +55,18 @@
 </div>
 
 <ul class="list-group list-group-flush my-3">
-    @foreach (Bounty bounty in Context.Bounties.OrderByDescending(bounty => bounty.Value).ToList())
-    {
-        Bounty bountyEntity = Context.Bounties.Find(bounty.Name);
-        <li class="list-group-item bg-dark">
-            <BountyItem @bind-Bounty="bountyEntity" AccountChangedCallback="AccountChangedCallback" BountiesChangedCallback="BountiesChangedCallback" />
-        </li>
-    }
+    <Virtualize Context=bounty Items=@(Context.Bounties.OrderByDescending(bounty => bounty.Value).ToList()) OverscanCount="25">
+        @{
+            Bounty? bountyEntity = Context.Bounties.Find(bounty.Name);
+
+            if (bountyEntity != null)
+            {
+                <li class="list-group-item bg-dark">
+                    <BountyItem @bind-Bounty="bountyEntity" AccountChangedCallback="AccountChangedCallback" BountiesChangedCallback="BountiesChangedCallback" />
+                </li>
+            }
+        }
+    </Virtualize>
 </ul>
 
 @code {
@@ -91,7 +96,7 @@
 
     private async Task NewBountyNameChanged(ChangeEventArgs changeEventArgs)
     {
-        if (string.IsNullOrWhiteSpace((string)changeEventArgs.Value) || await Context.FindAsync<Bounty>((string)changeEventArgs.Value) != null)
+        if (string.IsNullOrWhiteSpace((string?)changeEventArgs.Value ?? string.Empty) || await Context.FindAsync<Bounty>((string)changeEventArgs.Value!) != null)
             IsNewBountyNameValid = false;
         else
             IsNewBountyNameValid = true;

@@ -5,10 +5,10 @@ namespace Casheesh.Models
 {
     public class Bounty
     {
-        [Required, Key]
-        public string Name { get; set; }
+        [Key]
+        public required string Name { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         public double Value { get; set; }
         public double BaseValue { get; set; }

@@ -17,7 +17,7 @@ namespace Casheesh.Models
                 .HasIndex(account => account.Order);
 
             modelBuilder.Entity<Account>()
-                .HasData(new Account { Name = "Net Worth" });
+                .HasData(new Account { Name = "Net Worth", CurrentBalance = 0 });
 
             modelBuilder.Entity<Balance>()
                 .HasKey(balance => new { balance.AccountName, balance.Id });
